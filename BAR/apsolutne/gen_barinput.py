@@ -7,8 +7,8 @@ import click
 from colorama import Fore,Style
 import os.path
 import numpy as np
-#from scipy.interpolate import interp1d
-from numpy import interp as interp1d
+from scipy.interpolate import interp1d
+#from numpy import interp as interp1d
 import matplotlib.pyplot as plt
 import re 
  
@@ -28,7 +28,7 @@ unil='\u03BB'
 @click.option('-min1',default='./MDP/EM/em_steep.mdp',help='MDP of steepest decent minimization.')
 @click.option('-min2',default='./MDP/EM/em_l-bfgs.mdp',help='MDP of L-BFGS minimization.')
 @click.option('-nvt',default='./MDP/NVT/nvt.mdp',help='MDP of NVT equilibration.')
-@click.option('-npt',default='./npt.mdp',help='MDP of NPT equilibration.')
+@click.option('-npt',default='./MDP/NPT/npt.mdp',help='MDP of NPT equilibration.')
 @click.option('-prod',default='./MDP/Production_MD/md.mdp',help='MDP of the production run.')
 @click.option('-ncores',default=4,help='Number of cores per simulation.')
 @click.option('-pin',default='auto',help='Pin to cores.')
@@ -68,7 +68,7 @@ Recommended inital folder structure:
 #    bonded=bonded.split(',')
 #    restraint=restraint.split(',')
 #    temp=temp.split(',')
-	#check_mdp(mdp,min1,min2,nvt,npt,prod) # ovo je dobro treba reaktivirati
+	check_mdp(mdp,min1,min2,nvt,npt,prod) # ovo je dobro treba reaktivirati
 
 	if vdw!=False:
 		vdw=vdw.split(',')
