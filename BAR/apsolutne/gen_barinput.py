@@ -7,7 +7,8 @@ import click
 from colorama import Fore,Style
 import os.path
 import numpy as np
-from scipy.interpolate import interp1d
+#from scipy.interpolate import interp1d
+from numpy import interp as interp1d
 import matplotlib.pyplot as plt
 import re 
  
@@ -27,7 +28,7 @@ unil='\u03BB'
 @click.option('-min1',default='./MDP/EM/em_steep.mdp',help='MDP of steepest decent minimization.')
 @click.option('-min2',default='./MDP/EM/em_l-bfgs.mdp',help='MDP of L-BFGS minimization.')
 @click.option('-nvt',default='./MDP/NVT/nvt.mdp',help='MDP of NVT equilibration.')
-@click.option('-npt',default='./MDP/NPT/npt.mdp',help='MDP of NPT equilibration.')
+@click.option('-npt',default='./npt.mdp',help='MDP of NPT equilibration.')
 @click.option('-prod',default='./MDP/Production_MD/md.mdp',help='MDP of the production run.')
 @click.option('-ncores',default=4,help='Number of cores per simulation.')
 @click.option('-pin',default='auto',help='Pin to cores.')
@@ -40,6 +41,8 @@ Developed by Neven Golenic | neven.golenic@gmail.com
 \b
 Number of simulations [ N ] default: [ 20 ]
 \u03BB parameters [ N_min,N_max ]
+
+If BAR results from a previous simulation are imported, lambdas of different type must not overlap!
 
 \b
 Recommended inital folder structure:
@@ -65,29 +68,29 @@ Recommended inital folder structure:
 #    bonded=bonded.split(',')
 #    restraint=restraint.split(',')
 #    temp=temp.split(',')
-	check_mdp(mdp,min1,min2,nvt,npt,prod)
+	#check_mdp(mdp,min1,min2,nvt,npt,prod) # ovo je dobro treba reaktivirati
 
 	if vdw!=False:
 		vdw=vdw.split(',')
 		vdwstr='Coupling van der Waals interactions from '+Fore.MAGENTA+unil+'({0})'+Fore.RESET+' to '+Fore.MAGENTA+unil+'({1})'+Fore.RESET
 		print(vdwstr.format(vdw[0],vdw[1]))
 		vdw_lambdas = 'vdw_lambdas = '+" ".join(create_lambdas(nsim,int(vdw[0]),int(vdw[1])))+'\n'
-		print(5*'-----','\n',vdw_lambdas,5*'______','\n')
+		print(10*'_','\n',vdw_lambdas,10*'_','\n')
 		import_mdp(min1,min2,nvt,npt,prod,vdw_lambdas)
 	if coul!=False:
 		coul=coul.split(',')
 		coulstr='Coupling Coulomb interactions from '+Fore.MAGENTA+unil+'({0})'+Fore.RESET+' to '+Fore.MAGENTA+unil+'({1})'+Fore.RESET
 		print(coulstr.format(coul[0],coul[1]))
 		coul_lambdas='coul_lambdas = '+" ".join(create_lambdas(nsim,int(coul[0]),int(coul[1])))
-		print(5*'-----','\n',coul_lambdas,'\n',5*'______','\n')
+		print(10*'_','\n',coul_lambdas,'\n',10*'_','\n')
 	if mass!=False:
 		mass=mass.split(',')
 		massstr='Coupling mass lambdas from '+Fore.MAGENTA+unil+'({0})'+Fore.RESET+' to '+Fore.MAGENTA+unil+'({1})'+Fore.RESET
 		print(massstr.format(mass[0],mass[1]))
 		mass_lambdas='mass_lambdas = '+" ".join(create_lambdas(nsim,int(mass[0]),int(mass[1])))
-		print(5*'-----','\n',mass_lambdas,'\n',5*'______','\n')
+		print(1*'_','\n',mass_lambdas,'\n',10*'_','\n')
 	
-	return None
+#	return None
  
 # click.echo(vdw)
 
@@ -126,7 +129,8 @@ def check_mdp(mdp,min1,min2,nvt,npt,prod):
 		print(Fore.RED,"ERROR: MDP folder not found, please specify paths to ALL .mdp files manually.",Fore.RESET)
 		exit()
 
-def import_mdp(min1,min2,nvt,npt,prod,vdw_lambdas):
+def import_mdp_old(min1,min2,nvt,npt,prod,vdw_lambdas):
+#   pass # jer je ova funkcija losa
 	# Imports mdp files and replaces them with new ones with correct lambdas
 	with open(min1) as file:
 		filedata = open('MDP/em_steep.mdp','w')
@@ -142,6 +146,7 @@ def import_mdp(min1,min2,nvt,npt,prod,vdw_lambdas):
 #    with open('file.txt', 'w') as file:
 #        file.write(filedata)
 
+
 def write_mdp():
 	return None
 
@@ -149,6 +154,51 @@ def gen_mdp():
 	return None
 #ncpus = 1
 #nsim = 20
+
+def import_mdp(mdp_file):
+   global coul_lambdas_mdp
+   global vdw_lambdas_mdp
+   global mass_lambdas_mdp
+   global rest_lambdas_mdp
+   global bond_lambdas_mdp
+   global temp_lambdas_mdp
+   with open(mdp_file,'r+') as f:
+      k = f.readlines()      
+   for line in k:
+      if "coul_lambdas" in line:
+         coul_lambdas_mdp = line.split(' ')
+#         print(line)
+      if "vdw_lambdas" in line:
+         coul_lambdas_mdp = line.split(' ')
+#         print(line)         
+      if "mass_lambdas" in line:
+         mass_lambdas_mdp = line.split(' ')
+#         print(line)
+      if "bonded_lambdas" in line:
+         bond_lambdas_mdp = line.split(' ')
+#         print(line)  
+      if "restraint_lambdas" in line:
+         rest_lambdas_mdp = line.split(' ')
+#         print(line)
+      if "temperature_lambdas" in line:
+         temp_lambdas_mdp = line.split(' ')                         
+
+def str2array(string):
+   '''
+   ignore text and convert numerical
+   values in a given string to floats
+   '''
+   z=[]
+   for k in string:
+      try: 
+         z.append(float(k))
+      except ValueError:
+         pass
+   return z
+
+#print(str2array(temp_lambdas_mdp))
+
+         
  
 def create_lambdas(nsim,start,end):
 	# Creates lambda values equidistant with respect to lambdas
@@ -172,8 +222,7 @@ def import_bar(bar):
 			elif i==1:
 			   ddG.append(re.sub("\s\s+", " ", line).split(' '))
 	np.loadtxt(barfile,usecols=(1,5))
-	
-	return 
+	return None
 
 def create_lambdas_equiG(nsim,start,end):
 	# Creates lambda values equidistant with respect to DDG
