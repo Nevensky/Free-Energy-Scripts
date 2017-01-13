@@ -1,2 +1,2 @@
 
-Copyright (C) 2017 VPFK Studos
+Copyright (C) 2017 Neven Golenic
