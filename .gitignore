@@ -3,6 +3,8 @@
 *.tpr
 *.cpt
 *.edr
+*.trj
+*.trr
 
 # pdf files
 *.pdf
