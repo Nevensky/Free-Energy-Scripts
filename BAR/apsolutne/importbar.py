@@ -7,9 +7,29 @@ import os.path
 import numpy as np
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
+plt.style.use('ggplot')
 import re 
 
 
+"""
+
+1) DONE import bar_results file and extract ddG for nsims from bar_results into an array 
+2) import Production MDP file and read lambda ranges for each lambda type into Ntype-dim array
+		- exclude inactive lambda types
+3) specify total nsim and divide nsim into nsubsim for each lambda type [in array of 2)]
+*) check if lambdas overlap
+4) create equidistant lambdas for each lambda type  (asuming no overlap between lambdas)
+		- interpolate ddG array and find stationary points then create [ddG_x,ddG_y] arrays on intervals inbetween
+		- compute optimal lambdas for each interval 
+			- DONE for one interval
+5) forward new lambdas to gen_barinp.py
+6) clean up code
+
+*) if lambdas overlap implement multivariate interpolation in 4)
+	- requires additional simulation (impossible to deconvolve ddG)
+	- not worth implementing for now
+
+"""
 
 def import_bar(bar,nsim):
 	ddG = []
@@ -23,42 +43,52 @@ def import_bar(bar,nsim):
 				break
 			elif i==1:
 				ddG.append(re.sub("\s\s+", " ", line).split(' ')) # remove whitespaces and split to array
-		ddG=[item for sublist in ddG for item in sublist] # flatten array
-		ddG=ddG[1:-1] # remove star/end "\n"
-		ddG_y=np.asarray(ddG[5::8],dtype='float64') # import every 8th element
-		ddG_x=np.asarray(ddG[1::8],dtype='float64')
-#		ddG_y_interp=np.interp(ddG_x,ddG_x,ddG_y) # 1D interpolation
-		ddG_y_interp = interp1d(ddG_x,ddG_y,kind='cubic')
-		ddG_x_interp = np.linspace(0, nsim-1, num=25*nsim, endpoint=True)
-		print(len(ddG_x),len(ddG_y),len(ddG_y_interp(ddG_x)),len(ddG_x_interp))
-		plt.plot(ddG_x,ddG_y,'o')
-		plt.plot(ddG_x_interp, ddG_y_interp(ddG_x_interp), '-x')
-		plt.legend(['data', 'cubic interpolation'], loc='best')
-		plt.xlabel('N') 
-		plt.ylabel('ddG')
-		plt.savefig('ddG_interpolation.pdf')
-		# nesto nije uredu, visak elemenata u equi_lambdas
-		#mean_ddG = np.mean(ddG_y_interp(ddG_x_interp))
-		#std_ddG = np.std(ddG_y_interp(ddG_x_interp))
-		equi_ddG = np.abs(ddG_y_interp(ddG_x_interp)[0]-ddG_y_interp(ddG_x_interp)[-1])/nsim
-		#equi_ddGs = [k*equi_ddG for k in range(nsim)]
-		equi_ddGs = []
-		equi_lambdas = []
-		for k in ddG_x_interp:
-			min_ddG = ddG_y_interp(ddG_x_interp)[0]
-			if ddG_y_interp(k)>=min_ddG:
-				equi_ddGs.append(ddG_y_interp(k))
-				equi_lambdas.append("{0:.4f}".format(k))
-				min_ddG=min_ddG+equi_ddG
-		equi_lambdas[-1] = '1.0000'
-		print(equi_ddGs,np.std(equi_ddGs))
-		print(equi_lambdas)
+		ddG = [item for sublist in ddG for item in sublist] # flatten array
+		ddG = ddG[1:-1] # remove start/end "\n"
+		#ddG_x = np.asarray(ddG[1::8],dtype='float64') # import every 8th element --> gives sim N
+		ddG_y = np.asarray(ddG[5::8],dtype='float64')
+		ddG_x = np.linspace(0,1,num=len(ddG_y))
 
-		print(equi_ddG)
-		#print(equi_ddGs)
-		#print(ddG_y_interp(ddG_x_interp))
-		#print(ddG_y_interp(ddG_x))
-		#print(ddG_y_interp(ddG_x_interp))
+		ddG_x_interp = np.linspace(0, 1, num=25*nsim, endpoint=True)
+		ddG_y_interp_func = interp1d(ddG_x,ddG_y,kind='cubic')
+		ddG_y_interp = ddG_y_interp_func(ddG_x_interp)
+
+		ddG_y_first = ddG_y_interp[0]
+		ddG_y_last = ddG_y_interp[-1]
+		ddG_y_min = np.amin(ddG_y_interp_func(ddG_x))
+		ddG_y_max = np.amax(ddG_y_interp_func(ddG_x))
+		#equi_ddG = np.abs(ddG_y_last-ddG_y_first)/nsim
+		equi_ddG = np.abs(ddG_y_max-ddG_y_min)/nsim
+
+		ddG_y2 = np.asarray([ddG_y_min + i*equi_ddG for i in range(nsim-1)])
+		ddG_x2_func = interp1d(ddG_y_interp,ddG_x_interp,kind='linear')
+		ddG_x2 = ddG_x2_func(ddG_y2)
+
+		# append missing lambda up to 1
+		ddG_x2 = np.append(ddG_x2,0.0)
+		ddG_y2 = np.append(ddG_y2,ddG_y[0])
+		#ddG_x2 = np.insert(ddG_x2,0,1.0)
+		#ddG_y2 = np.insert(ddG_y2,0,ddG_y[-1])
+		#print(np.insert(ddG_y2,1,ddG_y[-1]))
+		#print(ddG_x)
+		#print(ddG_y)
+		#print(ddG_y2)
+		print(ddG_x2[::-1]) # print lambdas in reverse order
+		#print("_lambdas = "," ".join(list(map(str,ddG_x2[::-1].tolist()))))
+		print("len(ddG_x) = ",len(ddG_x),"\nlen(ddG_y) = ",len(ddG_y),"\nlen(ddG_y_interp) = ",len(ddG_y_interp),"\nlen(ddG_x2) = ",len(ddG_x2),"\nlen(ddG_y2) = ",len(ddG_y2))
+		
+
+		# Plot results
+		plt.rc('text', usetex=True)
+		plt.plot(ddG_x,ddG_y,'*',markersize=5,fillstyle='none')
+		plt.plot(ddG_x2,ddG_y2,'o',markersize=5,fillstyle='none')
+		plt.plot(ddG_x_interp, ddG_y_interp, '-')
+		plt.legend(['input lambdas', 'cub/lin interpolated lambdas','cubic interpolation func'], loc='best')
+		plt.xlabel(r'$\lambda$') 
+		plt.ylabel(r"$\Delta \Delta G / \mathrm{kJ mol^{-1}}$")
+		plt.savefig('ddG_interpolation.pdf')
+
+		return ddG_x2
 
 
 
@@ -67,6 +97,7 @@ def create_lambdas_equiG(nsim,start,end,bar_array):
 	
 	return None
 
-#nsim=int(input("Input number of sims: \n >>>"))
-nsim=20
-import_bar('./bar_results.txt',nsim)
+if __name__ == '__main__':
+	#nsim=int(input("Input number of sims: \n >>>"))
+	nsim=40
+	import_bar('./bar_results.txt',nsim)

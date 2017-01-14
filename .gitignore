@@ -1,0 +1,8 @@
+# Gromacs binary files
+*.xtc
+*.tpr
+*.cpt
+*.edr
+
+# pdf files
+*.pdf
