@@ -7,11 +7,9 @@ import matplotlib.pyplot as plt
 from scipy.optimize import brentq
 from scipy import interpolate
 
-plt.style.use('ggplot')
+import importbar as bar
 
-nsim = 6
-x = np.linspace(0,1,100)
-y = np.sin(12*x)-2*x
+plt.style.use('ggplot')
 
 
 def find_intervals(x,y):
@@ -30,8 +28,7 @@ def find_intervals(x,y):
             print("motonic ddG(x) on interval [",x[start_i],x[i],"]")
             intervals.append([x[start_i],x[i]])
             dividedfunc.append([x[start_i:i],y[start_i:i]])
-            #plt.subplot(320+k)
-            plt.plot(x[start_i:i],y[start_i:i])
+            #plt.plot(x[start_i:i],y[start_i:i])
             start_i = i
     if k==0:
     	# If ddG is monotnous over the whole range return one interval
@@ -43,7 +40,7 @@ def find_intervals(x,y):
         print("motonic ddG(x) on interval: [",x[start_i],x[-1],"]")
         intervals.append([x[start_i],x[-1]])
         dividedfunc.append([x[start_i:],y[start_i:]])
-        plt.plot(x[start_i:],y[start_i:])
+        #plt.plot(x[start_i:],y[start_i:])
     return intervals,dividedfunc
 
 
@@ -85,17 +82,34 @@ def lambdas_per_interval(nsim,weights):
 		raise SystemExit(0) # prekida program
 	return num_lambdas,sum_lambdas
 
-
-if __name__ == '__main__':
-	intervals,ddGfunction = find_intervals(x,y)
-	weights = interval_weights(ddGfunction)
-	print("Weights: ",weights)
-	print(lambdas_per_interval(nsim,weights))
-
+def plot_intervals(intervals,dividedfunc):
+	for pl in dividedfunc:
+		plt.plot(pl[0],pl[1])
+	plt.rc('text', usetex=True)
 	plot_labels = ["[{:.2f}, {:.2f}]".format(k[0],k[1]) for k in intervals]
 	plt.xlabel(r'$\lambda$') 
 	plt.ylabel(r"$\Delta \Delta G / \mathrm{kJ mol^{-1}}$")
 	plt.legend(plot_labels, loc='best')
 #	plt.show()
 	plt.savefig("ddG_intervals.pdf")
+
+
+if __name__ == '__main__':
+# DEBUG
+#	x = np.linspace(0,1,100)
+#	y = np.sin(12*x)-2*x
+	nsim = 30
+	ddG_x,ddG_y = bar.import_bar('./bar_results.txt',nsim)
+	x,y = bar.interpolate_ddG(ddG_x,ddG_y,nsim)[:-1]
+
+	intervals,ddGfunction = find_intervals(x,y)
+	weights = interval_weights(ddGfunction)
+	print("Weights: ",weights)
+	print(lambdas_per_interval(nsim,weights))
+
+	start = 0
+	end = -1
+	ddG_x2,ddG_y2 = bar.create_lambdas_equiG(start,end,ddG_x,ddG_y,nsim)
+
+	plot_intervals(intervals,ddGfunction)
 

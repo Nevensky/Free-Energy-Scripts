@@ -52,14 +52,18 @@ def import_bar(bar_file,nsim):
 	return ddG_x,ddG_y
 
 
-def create_lambdas_equiG(start,end,ddG_x,ddG_y,nsim):
-	""" Creates lambda values equidistant with respect to DDG """
+def interpolate_ddG(ddG_x,ddG_y,nsim):
 	ddG_x_interp = np.linspace(0, 1, num=25*nsim, endpoint=True)
 	ddG_y_interp_func = interp1d(ddG_x,ddG_y,kind='cubic')
 	ddG_y_interp = ddG_y_interp_func(ddG_x_interp)
+	return ddG_x_interp,ddG_y_interp,ddG_y_interp_func
 
-	ddG_y_first = ddG_y_interp[0]
-	ddG_y_last = ddG_y_interp[-1]
+def create_lambdas_equiG(start,end,ddG_x,ddG_y,nsim):
+	""" Creates lambda values equidistant with respect to DDG """
+	ddG_x_interp,ddG_y_interp,ddG_y_interp_func = interpolate_ddG(ddG_x,ddG_y,nsim)
+
+	# ddG_y_first = ddG_y_interp[0]
+	# ddG_y_last = ddG_y_interp[-1]
 	ddG_y_min = np.amin(ddG_y_interp_func(ddG_x))
 	ddG_y_max = np.amax(ddG_y_interp_func(ddG_x))
 	#equi_ddG = np.abs(ddG_y_last-ddG_y_first)/nsim
@@ -76,8 +80,6 @@ def create_lambdas_equiG(start,end,ddG_x,ddG_y,nsim):
 	ddG_x2 = ddG_x2[::-1]
 	ddG_y2 = ddG_y2[::-1]
 
-	return ddG_x2,ddG_y2,ddG_x_interp,ddG_y_interp
-	
 	# DEBUG
 	#ddG_x2 = np.insert(ddG_x2,0,1.0)
 	#ddG_y2 = np.insert(ddG_y2,0,ddG_y[-1])
@@ -88,7 +90,8 @@ def create_lambdas_equiG(start,end,ddG_x,ddG_y,nsim):
 	#print(ddG_x2)
 	#print("_lambdas = "," ".join(list(map(str,ddG_x2[::-1].tolist()))))
 	#print("len(ddG_x) = ",len(ddG_x),"\nlen(ddG_y) = ",len(ddG_y),"\nlen(ddG_y_interp) = ",len(ddG_y_interp),"\nlen(ddG_x2) = ",len(ddG_x2),"\nlen(ddG_y2) = ",len(ddG_y2))
-	
+
+	return ddG_x2,ddG_y2	
 
 
 def plot_interpolation(ddG_x2,ddG_y2,ddG_x_interp,ddG_y_interp):
@@ -106,10 +109,9 @@ if __name__ == '__main__':
 	#nsim=int(input("Input number of sims: \n >>>"))
 	nsim = 20
 	ddG_x,ddG_y = import_bar('./bar_results.txt',nsim)
-
-	start = 0
-	end = -1
-	ddG_x2,ddG_y2,ddG_x_interp,ddG_y_interp = create_lambdas_equiG(start,end,ddG_x,ddG_y,nsim)
+	ddG_x_interp,ddG_y_interp = interpolate_ddG(ddG_x,ddG_y,nsim)[:-1] # ruzno, treba popraviti
+	start,end = 0,-1 # whole range
+	ddG_x2,ddG_y2 = create_lambdas_equiG(start,end,ddG_x,ddG_y,nsim)
 
 	print("Equidistant lambdas with respect to ddG:\n",ddG_x2)
 	plot_interpolation(ddG_x2,ddG_y2,ddG_x_interp,ddG_y_interp)
