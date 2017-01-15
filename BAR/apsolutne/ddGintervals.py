@@ -8,6 +8,7 @@ from scipy import interpolate
 
 plt.style.use('ggplot')
 
+nsim = 20
 x = np.linspace(0,1,100)
 y = np.sin(12*x)-2*x
 
@@ -86,14 +87,26 @@ def interval_weights(dividedfunc):
 		ddGfunction_i = item[1]
 		weights.append(np.abs(np.amax(ddGfunction_i)-np.amin(ddGfunction_i)))
 	weights= weights/np.sum(weights)
-	#max_weight = np.amax(weights)
-	#weights = weights/max_weight
 	return weights
+
+def lambdas_per_interval(nsim,weights):
+	"""NIJE DOBRO!! Greed alrogithm to assign proper number of lambdas per interval
+	based on calculated wieghts. """
+	num_lambdas = []
+	for item in weights:
+		num_lambdas.append(int(np.floor(item*nsim)))
+	sum_lambdas = np.sum(num_lambdas)
+	if sum_lambdas<nsim:
+		num_lambdas = np.asarray(num_lambdas)+1
+		sum_lambdas = np.sum(num_lambdas)
+	return num_lambdas
+
 
 if __name__ == '__main__':
 	intervals,ddGfunction = find_intervals(x,y)
 	weights = interval_weights(ddGfunction)
 	print(weights)
+	print(lambdas_per_interval(nsim,weights))
 
 	plot_labels = ["[{:.2f}, {:.2f}]".format(k[0],k[1]) for k in intervals]
 	plt.xlabel(r'$\lambda$') 
@@ -101,3 +114,4 @@ if __name__ == '__main__':
 	plt.legend(plot_labels, loc='best')
 #	plt.show()
 	plt.savefig("ddG_intervals.pdf")
+
