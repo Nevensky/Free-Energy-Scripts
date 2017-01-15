@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # skripta za određivanje dG intervala funkcija koje ne rastu/padaju monotono
+# trenutno ne prisljava da se prvom intervalu dodijeli ijedna lambda -> vidjeti reperkusije
 
 import numpy as np
 import matplotlib.pyplot as plt
