@@ -11,6 +11,9 @@ from scipy.interpolate import interp1d
 #from numpy import interp as interp1d
 import matplotlib.pyplot as plt
 import re 
+
+import ddGintervals
+import importbar as bar
  
 unil='\u03BB'
  
@@ -185,8 +188,8 @@ def import_mdp(mdp_file):
 
 def str2array(string):
    '''
-   ignore text and convert numerical
-   values in a given string to floats
+   Ignore text and convert numerical
+   values in a given string to floats.
    '''
    z=[]
    for k in string:
@@ -201,7 +204,7 @@ def str2array(string):
          
  
 def create_lambdas(nsim,start,end):
-	# Creates lambda values equidistant with respect to lambdas
+	""" Creates lambda values equidistant with respect to lambdas """
 	lambdas = []
 	lambda_0 = 1.0/(end-start)
 	for i in range(nsim+1):
@@ -212,22 +215,6 @@ def create_lambdas(nsim,start,end):
 			lambdas.append("0.0000")
 	return lambdas
  
-def import_bar(bar):
-	ddG = []
-	with open(bar,'r') as file:
-		i = 0
-		for line in file:
-			if 'Final results in kJ/mol:' in line:
-			   i = 1
-			elif i==1:
-			   ddG.append(re.sub("\s\s+", " ", line).split(' '))
-	np.loadtxt(barfile,usecols=(1,5))
-	return None
-
-def create_lambdas_equiG(nsim,start,end):
-	# Creates lambda values equidistant with respect to DDG
-	interp1d()
-
  
 if __name__ == '__main__':
 	inputs()

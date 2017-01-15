@@ -7,9 +7,9 @@ import os.path
 import numpy as np
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
-plt.style.use('ggplot')
 import re 
 
+plt.style.use('ggplot')
 
 """
 
