@@ -31,9 +31,10 @@ import re
 
 """
 
-def import_bar(bar,nsim):
+def import_bar(bar_file,nsim):
+	""" Import bar results"""
 	ddG = []
-	with open(bar,'r') as file:
+	with open(bar_file,'r') as file:
 		i = 0
 		for line in file:
 			if 'Final results in kJ/mol:' in line:
@@ -48,56 +49,67 @@ def import_bar(bar,nsim):
 		#ddG_x = np.asarray(ddG[1::8],dtype='float64') # import every 8th element --> gives sim N
 		ddG_y = np.asarray(ddG[5::8],dtype='float64')
 		ddG_x = np.linspace(0,1,num=len(ddG_y))
-
-		ddG_x_interp = np.linspace(0, 1, num=25*nsim, endpoint=True)
-		ddG_y_interp_func = interp1d(ddG_x,ddG_y,kind='cubic')
-		ddG_y_interp = ddG_y_interp_func(ddG_x_interp)
-
-		ddG_y_first = ddG_y_interp[0]
-		ddG_y_last = ddG_y_interp[-1]
-		ddG_y_min = np.amin(ddG_y_interp_func(ddG_x))
-		ddG_y_max = np.amax(ddG_y_interp_func(ddG_x))
-		#equi_ddG = np.abs(ddG_y_last-ddG_y_first)/nsim
-		equi_ddG = np.abs(ddG_y_max-ddG_y_min)/nsim
-
-		ddG_y2 = np.asarray([ddG_y_min + i*equi_ddG for i in range(nsim-1)])
-		ddG_x2_func = interp1d(ddG_y_interp,ddG_x_interp,kind='linear')
-		ddG_x2 = ddG_x2_func(ddG_y2)
-
-		# append missing lambda up to 1
-		ddG_x2 = np.append(ddG_x2,0.0)
-		ddG_y2 = np.append(ddG_y2,ddG_y[0])
-		#ddG_x2 = np.insert(ddG_x2,0,1.0)
-		#ddG_y2 = np.insert(ddG_y2,0,ddG_y[-1])
-		#print(np.insert(ddG_y2,1,ddG_y[-1]))
-		#print(ddG_x)
-		#print(ddG_y)
-		#print(ddG_y2)
-		print(ddG_x2[::-1]) # print lambdas in reverse order
-		#print("_lambdas = "," ".join(list(map(str,ddG_x2[::-1].tolist()))))
-		print("len(ddG_x) = ",len(ddG_x),"\nlen(ddG_y) = ",len(ddG_y),"\nlen(ddG_y_interp) = ",len(ddG_y_interp),"\nlen(ddG_x2) = ",len(ddG_x2),"\nlen(ddG_y2) = ",len(ddG_y2))
-		
-
-		# Plot results
-		plt.rc('text', usetex=True)
-		plt.plot(ddG_x,ddG_y,'*',markersize=5,fillstyle='none')
-		plt.plot(ddG_x2,ddG_y2,'o',markersize=5,fillstyle='none')
-		plt.plot(ddG_x_interp, ddG_y_interp, '-')
-		plt.legend(['input lambdas', 'cub/lin interpolated lambdas','cubic interpolation func'], loc='best')
-		plt.xlabel(r'$\lambda$') 
-		plt.ylabel(r"$\Delta \Delta G / \mathrm{kJ mol^{-1}}$")
-		plt.savefig('ddG_interpolation.pdf')
-
-		return ddG_x2
+	return ddG_x,ddG_y
 
 
+def create_lambdas_equiG(start,end,ddG_x,ddG_y,nsim):
+	""" Creates lambda values equidistant with respect to DDG """
+	ddG_x_interp = np.linspace(0, 1, num=25*nsim, endpoint=True)
+	ddG_y_interp_func = interp1d(ddG_x,ddG_y,kind='cubic')
+	ddG_y_interp = ddG_y_interp_func(ddG_x_interp)
 
-def create_lambdas_equiG(nsim,start,end,bar_array):
-	# Creates lambda values equidistant with respect to DDG
+	ddG_y_first = ddG_y_interp[0]
+	ddG_y_last = ddG_y_interp[-1]
+	ddG_y_min = np.amin(ddG_y_interp_func(ddG_x))
+	ddG_y_max = np.amax(ddG_y_interp_func(ddG_x))
+	#equi_ddG = np.abs(ddG_y_last-ddG_y_first)/nsim
+	equi_ddG = np.abs(ddG_y_max-ddG_y_min)/nsim
+
+	ddG_y2 = np.asarray([ddG_y_min + i*equi_ddG for i in range(nsim-1)])
+	ddG_x2_func = interp1d(ddG_y_interp,ddG_x_interp,kind='linear')
+	ddG_x2 = ddG_x2_func(ddG_y2)
+
+	# append missing lambda up to 1
+	ddG_x2 = np.append(ddG_x2,0.0)
+	ddG_y2 = np.append(ddG_y2,ddG_y[0])
+	# reverse order of lambdas to 0->1
+	ddG_x2 = ddG_x2[::-1]
+	ddG_y2 = ddG_y2[::-1]
+
+	return ddG_x2,ddG_y2,ddG_x_interp,ddG_y_interp
 	
-	return None
+	# DEBUG
+	#ddG_x2 = np.insert(ddG_x2,0,1.0)
+	#ddG_y2 = np.insert(ddG_y2,0,ddG_y[-1])
+	#print(np.insert(ddG_y2,1,ddG_y[-1]))
+	#print(ddG_x)
+	#print(ddG_y)
+	#print(ddG_y2)
+	#print(ddG_x2)
+	#print("_lambdas = "," ".join(list(map(str,ddG_x2[::-1].tolist()))))
+	#print("len(ddG_x) = ",len(ddG_x),"\nlen(ddG_y) = ",len(ddG_y),"\nlen(ddG_y_interp) = ",len(ddG_y_interp),"\nlen(ddG_x2) = ",len(ddG_x2),"\nlen(ddG_y2) = ",len(ddG_y2))
+	
+
+
+def plot_interpolation(ddG_x2,ddG_y2,ddG_x_interp,ddG_y_interp):
+	# Plot results
+	plt.rc('text', usetex=True)
+	plt.plot(ddG_x,ddG_y,'*',markersize=5,fillstyle='none')
+	plt.plot(ddG_x2,ddG_y2,'o',markersize=5,fillstyle='none')
+	plt.plot(ddG_x_interp, ddG_y_interp, '-')
+	plt.legend(['input lambdas', 'cub/lin interpolated lambdas','cubic interpolation func'], loc='best')
+	plt.xlabel(r'$\lambda$') 
+	plt.ylabel(r"$\Delta \Delta G / \mathrm{kJ mol^{-1}}$")
+	plt.savefig('ddG_interpolation.pdf')
 
 if __name__ == '__main__':
 	#nsim=int(input("Input number of sims: \n >>>"))
-	nsim=40
-	import_bar('./bar_results.txt',nsim)
+	nsim = 20
+	ddG_x,ddG_y = import_bar('./bar_results.txt',nsim)
+
+	start = 0
+	end = -1
+	ddG_x2,ddG_y2,ddG_x_interp,ddG_y_interp = create_lambdas_equiG(start,end,ddG_x,ddG_y,nsim)
+
+	print("Equidistant lambdas with respect to ddG:\n",ddG_x2)
+	plot_interpolation(ddG_x2,ddG_y2,ddG_x_interp,ddG_y_interp)

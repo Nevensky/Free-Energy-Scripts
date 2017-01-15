@@ -9,6 +9,8 @@
 # pdf files
 *.pdf
 
+# Python compiled files
+*.pyc
 
 # additional files
 #ddGintervals.py
