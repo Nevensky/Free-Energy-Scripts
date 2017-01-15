@@ -106,10 +106,9 @@ if __name__ == '__main__':
 	weights = interval_weights(ddGfunction)
 	print("Weights: ",weights)
 	print(lambdas_per_interval(nsim,weights))
+	plot_intervals(intervals,ddGfunction)
 
-	start = 0
-	end = -1
+	start,end = 0,-1
 	ddG_x2,ddG_y2 = bar.create_lambdas_equiG(start,end,ddG_x,ddG_y,nsim)
 
-	plot_intervals(intervals,ddGfunction)
 
