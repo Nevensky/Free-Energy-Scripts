@@ -8,7 +8,7 @@ from scipy import interpolate
 
 plt.style.use('ggplot')
 
-nsim = 20
+nsim = 6
 x = np.linspace(0,1,100)
 y = np.sin(12*x)-2*x
 
@@ -90,22 +90,38 @@ def interval_weights(dividedfunc):
 	return weights
 
 def lambdas_per_interval(nsim,weights):
-	"""NIJE DOBRO!! Greed alrogithm to assign proper number of lambdas per interval
-	based on calculated wieghts. """
+	"""Assign proper number of lambdas per interval	based on calculated wieghts. """
 	num_lambdas = []
+	rounding_errors = []
 	for item in weights:
 		num_lambdas.append(int(np.floor(item*nsim)))
+		rounding_errors.append(np.abs(item*nsim-np.floor(item*nsim)))
 	sum_lambdas = np.sum(num_lambdas)
 	if sum_lambdas<nsim:
-		num_lambdas = np.asarray(num_lambdas)+1
-		sum_lambdas = np.sum(num_lambdas)
-	return num_lambdas
+		while True:
+			print("Sum of weighted lambdas: ",sum_lambdas,"\n\tRounding errors: ",rounding_errors,"\n\tMax:",np.amax(rounding_errors),"Max_idx: ",np.argmax(rounding_errors))
+			if sum_lambdas<nsim:
+				if np.abs(sum_lambdas-nsim)>1 or num_lambdas[-1]!=0:
+					max_idx = np.argmax(rounding_errors)
+					num_lambdas[max_idx] += 1
+					rounding_errors[max_idx] = 0
+					sum_lambdas = np.sum(num_lambdas)
+				elif num_lambdas[-1]==0 and np.abs(sum_lambdas-nsim)==1:
+					print("Fixed last interval instead of weighted interval with corresponding maximum variance.")
+					num_lambdas[-1] += 1
+					sum_lambdas = np.sum(num_lambdas)
+			else:
+				break
+	elif sum_lambdas>nsim:
+		print("EROOR: Could not assign weighted number of lambdas per each interval. \n Nsim > N(weighted lambdas)")
+		raise SystemExit(0) # prekida program
+	return num_lambdas,sum_lambdas
 
 
 if __name__ == '__main__':
 	intervals,ddGfunction = find_intervals(x,y)
 	weights = interval_weights(ddGfunction)
-	print(weights)
+	print("Weights: ",weights)
 	print(lambdas_per_interval(nsim,weights))
 
 	plot_labels = ["[{:.2f}, {:.2f}]".format(k[0],k[1]) for k in intervals]
