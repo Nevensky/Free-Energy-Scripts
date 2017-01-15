@@ -12,39 +12,6 @@ nsim = 6
 x = np.linspace(0,1,100)
 y = np.sin(12*x)-2*x
 
-def find_intervals_old(x,y):
-	""" Determines intervals of changing slope 
-	and inflexion for a given function.	"""
-	dy = np.gradient(y)
-	ddy = np.diff(y,n=2)
-	intervals = []
-	prev_dy_sign,prev_ddy_sign = np.sign(0),np.sign(0)
-	for idx1,item1 in enumerate(dy):
-		current_x = x[idx1]
-		current_dy_sign = np.sign(item1)
-		if current_dy_sign != prev_dy_sign:
-			intervals.append(current_x)
-			prev_dy_sign = current_dy_sign
-	# for idx2,item2 in enumerate(ddy):
-	# 	current_x = x[idx1]
-	# 	current_ddy_sign = np.sign(item2)
-	# 	if current_ddy_sign != prev_ddy_sign:
-	# 		intervals.append(current_x)
-	# 	prev_ddy_sign = current_ddy_sign
-	# intervals = np.unique(intervals)
-	return intervals
-
-#print(find_intervals(x,y))
-
-# plt.plot(x,y,x,np.gradient(y))
-# plt.show()
-# plt.close
-# plt.figure(2)
-# plt.plot(np.linspace(0,10,len(ddy)),ddy)
-# plt.show()
-# plt.close()
-
-
 
 def find_intervals(x,y):
     # input ddG_y_interp(ddG_x_interp)
