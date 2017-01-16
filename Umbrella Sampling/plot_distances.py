@@ -10,6 +10,8 @@ import click
 import os #to get workign dir
 import socket #get computer name
 
+plt.style.use('ggplot')
+
 #max_dist=1.1 # nm
 #min_sep=0.2 # nm
 
@@ -18,31 +20,31 @@ import socket #get computer name
 @click.option('-max_dist',default='1',help='Maximum distance [nm] of coord solvent from starting position.')
 @click.option('-min_dist',default=False,help='Minimum distance [nm] of coord solvent from starting position.')
 @click.option('-min_sep',default='0.2',help='Minimum sepearation distance [nm] between subsequent windows.')
-@click.option('-omit',default='0.0',help='Omit all confs up to defined number.')
+@click.option('-omit',default='0',help='Omit all confs up to defined number.')
 @click.option('-umbrella_dir',default=os.getcwd(),help='Path to simulation root dir.')
 @click.option('-nskip',default=1,help='How many frames were skipped in trjconv.')
 
-def inputs(max_dist,min_dist,min_sep,umbrella_dir,nskip):
+def inputs(max_dist,min_dist,min_sep,umbrella_dir,nskip,omit):
 	'''Umbrella sampling mid-step. Plot distances between coord solv and ligand for all generated configurations and select meaningful ones based on 
 	maximum distance and window sepearation distance. \n
 
 Developed by Neven Golenic | neven.golenic@gmail.com'''
 	
 	path = umbrella_dir+"/CONF"
-	filenames = [item for item in next(os.walk(path))[2] if ".gro" in item]
-	num_files = len(filenames)-1 # ide od 0 - 5000 .... jedna viska za plotanje
+#	filenames = [item for item in next(os.walk(path))[2] if ".gro" in item]
+#	num_files = len(filenames)-1 # ide od 0 - 5000 .... jedna viska za plotanje
 
 	max_dist=float(max_dist)
 	min_dist=float(min_dist)
 	min_sep=float(min_sep)
 	omit=int(omit)
-	data = np.genfromtxt(umbrella_dir+'/summary_distances.dat', delimiter = '\t',skip_header=1)
+	data = np.genfromtxt(umbrella_dir+'/summary_distances_confs.dat', delimiter = '\t',skip_header=1)
 
 	order = data[omit:, 1].argsort()
 	sorted_data = np.take(data, order, 0)
 
 	desired_confs=["0 \n"]
-	desired_confs_vis=[umbrella_dir+"/CONF/conf0.gro "]
+	desired_confs_vis=["./CONF/conf0.gro "]
 #	desired_confs_value[sorted_data[0,:]]
 	print(sorted_data[:,1])
 	
@@ -68,7 +70,7 @@ Developed by Neven Golenic | neven.golenic@gmail.com'''
 					#print(np.abs(sorted_data[k+1,1]),"    ",k+1)
 					z=sorted_data[k+1,1]
 					desired_confs.append(str(k+1)+"\n")
-					desired_confs_vis.append(umbrella_dir+"/CONF/conf"+str(k+1)+".gro ")
+					desired_confs_vis.append("./CONF/conf"+str(k+1)+".gro ")
 					desired_confs_values.append(np.ndarray.tolist(sorted_data[k+1,:]))
 	#desired_confs_values=[str(k) for k in desired_confs_values]
 	print("maximum distance from initial positon = ",max_dist,"[nm]")
@@ -117,17 +119,17 @@ Developed by Neven Golenic | neven.golenic@gmail.com'''
 		f2.writelines(desired_confs_vis)
 
 # scale t[ps] |--> t[conf]
-	data_conf_ratio = data[-1,0]/num_files
-	print(num_files)
-	print(data[-1,0])
-	print(data_conf_ratio)
+#	data_conf_ratio = data[-1,0]/num_files
+#	print(num_files)
+#	print(data[-1,0])
+#	print(data_conf_ratio)
 
 
 #Pr. data[:,0]*10 jer x[ps] |--> x[conf] simulacija traje 500ps ali ispisujemo 5000 frameova
-	plt.plot(data[:,0]/data_conf_ratio,data[:,1],"r-")
+	plt.plot(data[:,0],data[:,1],"-")
 	for c in desired_confs:
 		# *10 jer sum dist ispisuje u ps umjesto u broju conf...treba popraviti
-		plt.axvline(float(c), color='b', linestyle='-',linewidth="0.05")
+		plt.axvline(float(c), linestyle='-',linewidth="0.05")
 	plt.text(4, 3.8, "max_dist"+str(max_dist)+"nm"+"    min_sep"+str(min_sep))
 	plt.xlabel("conf [number]")
 	plt.ylabel("distance [nm]")
@@ -136,17 +138,13 @@ Developed by Neven Golenic | neven.golenic@gmail.com'''
 
 
 def auto_omit():
-	'''
-	Fit sigmoid to data and determine up to which conf to omit all data.
-	'''
+	""" Fit sigmoid to data and determine up to which conf to omit all data. """
 	pass
 
 def fmtcols(mylist, cols):
-	'''
-	Format columns.
-	'''
-    lines = ("".join(str(mylist[i:i+cols])) for i in range(0,len(mylist),cols))
-    return '\n'.join(lines)
+	"""	Format columns. """
+	lines = ("".join(str(mylist[i:i+cols])) for i in range(0,len(mylist),cols))
+	return '\n'.join(lines)
 
 if __name__ == '__main__':
 	inputs()

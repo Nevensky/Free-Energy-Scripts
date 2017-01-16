@@ -1,0 +1,18 @@
+# Gromacs binary files
+*.gro
+*.xtc
+*.tpr
+*.cpt
+*.edr
+*.trj
+*.trr
+
+# pdf files
+*.pdf
+
+# Python compiled files
+*.pyc
+
+# additional files
+#ddGintervals.py
+vmd_visconfs.sh
