@@ -13,35 +13,36 @@ plt.style.use('ggplot')
 
 
 def find_intervals(x,y):
-    # input ddG_y_interp(ddG_x_interp)
-    #x=np.linspace(0,20,num=500)  #  x = ddG_x_interp
-    intervals = []
-    dividedfunc = []
-    start_i=0
-    dy = np.gradient(y)
-#    fig, ax = plt.subplots(figsize=(10, 8))
-    k=0
-    for i in range(len(dy)-1):
-        #if dy[i]*dy[i+1] < 0:   zamijenjeno s ljepsim uvjetom
-        if np.sign(dy[i]) != np.sign(dy[i+1]):
-            k+=1
-            print("motonic ddG(x) on interval [",x[start_i],x[i],"]")
-            intervals.append([x[start_i],x[i]])
-            dividedfunc.append([x[start_i:i],y[start_i:i]])
-            #plt.plot(x[start_i:i],y[start_i:i])
-            start_i = i
-    if k==0:
-    	# If ddG is monotnous over the whole range return one interval
-    	intervals.append([0.00,1.00])
-    	dividedfunc.append([x,y])
-    	plt.plot(x,y)
-    # fix last interval
-    if start_i != len(dy)-1:
-        print("motonic ddG(x) on interval: [",x[start_i],x[-1],"]")
-        intervals.append([x[start_i],x[-1]])
-        dividedfunc.append([x[start_i:],y[start_i:]])
-        #plt.plot(x[start_i:],y[start_i:])
-    return intervals,dividedfunc
+	""" Find and divide intervals where ddG is a monotonously ascending or descening function. 
+	The input should correspond to x = ddG_x_interp and y =ddG_y_interp."""
+	
+	# DEBUG
+	# x = np.linspace(0,20,num=500)
+	intervals = []
+	dividedfunc = []
+	start_i=0
+	dy = np.gradient(y)
+	k=0
+	for i in range(len(dy)-1):
+		if np.sign(dy[i]) != np.sign(dy[i+1]):
+			k+=1
+			print("monotonic ddG(x) on interval: [",x[start_i],x[i],"]")
+			intervals.append([x[start_i],x[i]])
+			dividedfunc.append([x[start_i:i],y[start_i:i]])
+			#plt.plot(x[start_i:i],y[start_i:i])
+			start_i = i	
+	# If ddG is monotnous over the whole range return one interval
+	if k==0:
+		intervals.append([0.00,1.00])
+		dividedfunc.append([x,y])
+		plt.plot(x,y)
+	# fix last interval
+	if start_i != len(dy)-1:
+		print("monotonic ddG(x) on interval: [",x[start_i],x[-1],"]")
+		intervals.append([x[start_i],x[-1]])
+		dividedfunc.append([x[start_i:],y[start_i:]])
+		#plt.plot(x[start_i:],y[start_i:])
+		return intervals,dividedfunc
 
 
 def interval_weights(dividedfunc):
@@ -83,8 +84,17 @@ def lambdas_per_interval(nsim,weights):
 	return num_lambdas,sum_lambdas
 
 def plot_intervals(intervals,dividedfunc):
+	""" Plot ddG interpolated function colored according to intervals 
+	and separated by vertical lines. """
+	axes = plt.gca()
+	# fig, ax = plt.subplots(figsize=(10, 8))
 	for pl in dividedfunc:
 		plt.plot(pl[0],pl[1])
+	
+	ymin,ymax = axes.get_ylim()
+	for pl in dividedfunc:
+		plt.vlines(pl[0][0],ymax=pl[1][0],ymin=ymin,linestyle='dotted',color='gray',linewidth=1)
+	
 	plt.rc('text', usetex=True)
 	plot_labels = ["[{:.2f}, {:.2f}]".format(k[0],k[1]) for k in intervals]
 	plt.xlabel(r'$\lambda$') 
@@ -95,20 +105,20 @@ def plot_intervals(intervals,dividedfunc):
 
 
 if __name__ == '__main__':
-# DEBUG
-#	x = np.linspace(0,1,100)
-#	y = np.sin(12*x)-2*x
+	# DEBUG
+	# x = np.linspace(0,1,100)
+	# y = np.sin(12*x)-2*x
 	nsim = 30
 	ddG_x,ddG_y = bar.import_bar('./bar_results.txt',nsim)
-	x,y = bar.interpolate_ddG(ddG_x,ddG_y,nsim)[:-1]
+	x,y = bar.interpolate_ddG(ddG_x,ddG_y,nsim)
 
 	intervals,ddGfunction = find_intervals(x,y)
 	weights = interval_weights(ddGfunction)
 	print("Weights: ",weights)
-	print(lambdas_per_interval(nsim,weights))
+	print("Number of lambdas per interval & sum: ",lambdas_per_interval(nsim,weights))
 	plot_intervals(intervals,ddGfunction)
 
-	start,end = 0,-1
-	ddG_x2,ddG_y2 = bar.create_lambdas_equiG(start,end,ddG_x,ddG_y,nsim)
+	ddG_x2,ddG_y2 = bar.create_lambdas_equiG(ddG_x,ddG_y,nsim)
+	print("Equidistant lambdas with respect to ddG:\n",ddG_x2)
 
 

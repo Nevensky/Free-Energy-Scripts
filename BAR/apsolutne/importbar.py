@@ -52,28 +52,31 @@ def import_bar(bar_file,nsim):
 	return ddG_x,ddG_y
 
 
-def interpolate_ddG(ddG_x,ddG_y,nsim):
+def interpolate_ddG(ddG_x,ddG_y,nsim,print_interp_func=False):
+	""" Interpolate ddG_x,ddG_y pairs over denser ddG_x grid
+	then return interpolated values and the interpolation function. """
 	ddG_x_interp = np.linspace(0, 1, num=25*nsim, endpoint=True)
 	ddG_y_interp_func = interp1d(ddG_x,ddG_y,kind='cubic')
 	ddG_y_interp = ddG_y_interp_func(ddG_x_interp)
-	return ddG_x_interp,ddG_y_interp,ddG_y_interp_func
+	if print_interp_func==False:
+		return ddG_x_interp,ddG_y_interp
+	elif print_interp_func==True:
+		return ddG_y_interp_func
 
-def create_lambdas_equiG(start,end,ddG_x,ddG_y,nsim):
-	""" Creates lambda values equidistant with respect to DDG """
-	ddG_x_interp,ddG_y_interp,ddG_y_interp_func = interpolate_ddG(ddG_x,ddG_y,nsim)
+def create_lambdas_equiG(ddG_x,ddG_y,nsim):
+	""" Creates lambda values equidistant with respect to ddG """
+	ddG_x_interp,ddG_y_interp = interpolate_ddG(ddG_x,ddG_y,nsim)
+	ddG_y_interp_func = interpolate_ddG(ddG_x,ddG_y,nsim,print_interp_func=True)
 
-	# ddG_y_first = ddG_y_interp[0]
-	# ddG_y_last = ddG_y_interp[-1]
 	ddG_y_min = np.amin(ddG_y_interp_func(ddG_x))
 	ddG_y_max = np.amax(ddG_y_interp_func(ddG_x))
-	#equi_ddG = np.abs(ddG_y_last-ddG_y_first)/nsim
 	equi_ddG = np.abs(ddG_y_max-ddG_y_min)/nsim
 
 	ddG_y2 = np.asarray([ddG_y_min + i*equi_ddG for i in range(nsim-1)])
 	ddG_x2_func = interp1d(ddG_y_interp,ddG_x_interp,kind='linear')
 	ddG_x2 = ddG_x2_func(ddG_y2)
 
-	# append missing lambda up to 1
+	# fix last interval by appending missing ddG_y value for lambda=1.0
 	ddG_x2 = np.append(ddG_x2,0.0)
 	ddG_y2 = np.append(ddG_y2,ddG_y[0])
 	# reverse order of lambdas to 0->1
@@ -95,7 +98,8 @@ def create_lambdas_equiG(start,end,ddG_x,ddG_y,nsim):
 
 
 def plot_interpolation(ddG_x2,ddG_y2,ddG_x_interp,ddG_y_interp):
-	# Plot results
+	""" Plot interpolated function with overlayed input lambdas 
+	and equidistant lambdas with respect to ddG_y. """
 	plt.rc('text', usetex=True)
 	plt.plot(ddG_x,ddG_y,'*',markersize=5,fillstyle='none')
 	plt.plot(ddG_x2,ddG_y2,'o',markersize=5,fillstyle='none')
@@ -109,9 +113,8 @@ if __name__ == '__main__':
 	#nsim=int(input("Input number of sims: \n >>>"))
 	nsim = 20
 	ddG_x,ddG_y = import_bar('./bar_results.txt',nsim)
-	ddG_x_interp,ddG_y_interp = interpolate_ddG(ddG_x,ddG_y,nsim)[:-1] # ruzno, treba popraviti
-	start,end = 0,-1 # whole range
-	ddG_x2,ddG_y2 = create_lambdas_equiG(start,end,ddG_x,ddG_y,nsim)
+	ddG_x_interp,ddG_y_interp = interpolate_ddG(ddG_x,ddG_y,nsim)
+	ddG_x2,ddG_y2 = create_lambdas_equiG(ddG_x,ddG_y,nsim)
 
 	print("Equidistant lambdas with respect to ddG:\n",ddG_x2)
 	plot_interpolation(ddG_x2,ddG_y2,ddG_x_interp,ddG_y_interp)
