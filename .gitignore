@@ -1,4 +1,5 @@
 # Gromacs binary files
+*.gro
 *.xtc
 *.tpr
 *.cpt
@@ -14,3 +15,4 @@
 
 # additional files
 #ddGintervals.py
+vmd_visconfs.sh
