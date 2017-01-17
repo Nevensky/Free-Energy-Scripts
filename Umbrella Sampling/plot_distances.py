@@ -17,10 +17,10 @@ plt.style.use('ggplot')
 
 @click.command()
 
-@click.option('-max_dist',default='1',help='Maximum distance [nm] of coord solvent from starting position.')
+@click.option('-max_dist',default=1.0,help='Maximum distance [nm] of coord solvent from starting position.')
 @click.option('-min_dist',default=False,help='Minimum distance [nm] of coord solvent from starting position.')
-@click.option('-min_sep',default='0.2',help='Minimum sepearation distance [nm] between subsequent windows.')
-@click.option('-omit',default='0',help='Omit all confs up to defined number.')
+@click.option('-min_sep',default=0.2,help='Minimum sepearation distance [nm] between subsequent windows.')
+@click.option('-omit',default=0,help='Omit all confs up to defined number.')
 @click.option('-umbrella_dir',default=os.getcwd(),help='Path to simulation root dir.')
 @click.option('-nskip',default=1,help='How many frames were skipped in trjconv.')
 
@@ -34,10 +34,10 @@ Developed by Neven Golenic | neven.golenic@gmail.com'''
 #	filenames = [item for item in next(os.walk(path))[2] if ".gro" in item]
 #	num_files = len(filenames)-1 # ide od 0 - 5000 .... jedna viska za plotanje
 
-	max_dist=float(max_dist)
-	min_dist=float(min_dist)
-	min_sep=float(min_sep)
-	omit=int(omit)
+	# max_dist=float(max_dist)
+	# min_dist=float(min_dist)
+	# min_sep=float(min_sep)
+	# omit=int(omit)
 	data = np.genfromtxt(umbrella_dir+'/summary_distances_confs.dat', delimiter = '\t',skip_header=1)
 
 	order = data[omit:, 1].argsort()

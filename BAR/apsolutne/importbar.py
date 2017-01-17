@@ -97,7 +97,7 @@ def create_lambdas_equiG(ddG_x,ddG_y,nsim):
 	return ddG_x2,ddG_y2	
 
 
-def plot_interpolation(ddG_x2,ddG_y2,ddG_x_interp,ddG_y_interp):
+def plot_interpolation(ddG_x,ddG_y,ddG_x2,ddG_y2,ddG_x_interp,ddG_y_interp):
 	""" Plot interpolated function with overlayed input lambdas 
 	and equidistant lambdas with respect to ddG_y. """
 	plt.rc('text', usetex=True)

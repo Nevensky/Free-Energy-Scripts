@@ -19,13 +19,13 @@ unil='\u03BB'
  
 @click.command()
 
-@click.option('--nsim',default=20,help='Total number of simulations.')
-@click.option('--vdw',default=False,help='Mutate van der Waals interactions.')
-@click.option('--coul',default=False,help='Mutate Coulomb interactions.')
-@click.option('--mass',default=False,help='Mutate mass of species.')
-@click.option('--bonded',default=False,help='Mutate bonded interactions.')
-@click.option('--restraint',default=False,help='Mutate restrained interactions.')
-@click.option('--temp',default=False,help='Simulated temptering.')
+@click.option('-nsim',default=20,help='Total number of simulations.')
+@click.option('-vdw',default=False,help='Mutate van der Waals interactions.')
+@click.option('-coul',default=False,help='Mutate Coulomb interactions.')
+@click.option('-mass',default=False,help='Mutate mass of species.')
+@click.option('-bonded',default=False,help='Mutate bonded interactions.')
+@click.option('-restraint',default=False,help='Mutate restrained interactions.')
+@click.option('-temp',default=False,help='Simulated temptering.')
 
 @click.option('-mdp',default='./MDP',help='MDP folder.')
 @click.option('-min1',default='./MDP/EM/em_steep.mdp',help='MDP of steepest decent minimization.')
