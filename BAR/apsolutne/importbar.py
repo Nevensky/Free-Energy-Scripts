@@ -52,10 +52,13 @@ def import_bar(bar_file,nsim):
 	return ddG_x,ddG_y
 
 
-def interpolate_ddG(ddG_x,ddG_y,nsim,print_interp_func=False):
+def interpolate_ddG(ddG_x,ddG_y,nsim,print_interp_func=False,already_interp=False):
 	""" Interpolate ddG_x,ddG_y pairs over denser ddG_x grid
 	then return interpolated values and the interpolation function. """
-	ddG_x_interp = np.linspace(0, 1, num=25*nsim, endpoint=True)
+	if already_interp==False:
+		ddG_x_interp = np.linspace(0, 1, num=25*nsim, endpoint=True)
+	else:
+		ddG_x_interp = ddG_x
 	ddG_y_interp_func = interp1d(ddG_x,ddG_y,kind='cubic')
 	ddG_y_interp = ddG_y_interp_func(ddG_x_interp)
 	if print_interp_func==False:
@@ -63,10 +66,10 @@ def interpolate_ddG(ddG_x,ddG_y,nsim,print_interp_func=False):
 	elif print_interp_func==True:
 		return ddG_y_interp_func
 
-def create_lambdas_equiG(ddG_x,ddG_y,nsim):
+def create_lambdas_equiG(ddG_x,ddG_y,nsim,already_interp=False):
 	""" Creates lambda values equidistant with respect to ddG """
-	ddG_x_interp,ddG_y_interp = interpolate_ddG(ddG_x,ddG_y,nsim)
-	ddG_y_interp_func = interpolate_ddG(ddG_x,ddG_y,nsim,print_interp_func=True)
+	ddG_x_interp,ddG_y_interp = interpolate_ddG(ddG_x,ddG_y,nsim,already_interp=already_interp)
+	ddG_y_interp_func = interpolate_ddG(ddG_x,ddG_y,nsim,print_interp_func=True,already_interp=already_interp)
 
 	ddG_y_min = np.amin(ddG_y_interp_func(ddG_x))
 	ddG_y_max = np.amax(ddG_y_interp_func(ddG_x))
