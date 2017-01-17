@@ -82,6 +82,7 @@ def create_lambdas_equiG(ddG_x,ddG_y,nsim,already_interp=False):
 	# fix last interval by appending missing ddG_y value for lambda=1.0
 	ddG_x2 = np.append(ddG_x2,0.0)
 	ddG_y2 = np.append(ddG_y2,ddG_y[0])
+
 	# reverse order of lambdas to 0->1
 	ddG_x2 = ddG_x2[::-1]
 	ddG_y2 = ddG_y2[::-1]
@@ -111,6 +112,7 @@ def plot_interpolation(ddG_x,ddG_y,ddG_x2,ddG_y2,ddG_x_interp,ddG_y_interp):
 	plt.xlabel(r'$\lambda$') 
 	plt.ylabel(r"$\Delta \Delta G / \mathrm{kJ mol^{-1}}$")
 	plt.savefig('ddG_interpolation.pdf')
+	plt.close()
 
 if __name__ == '__main__':
 	#nsim=int(input("Input number of sims: \n >>>"))
@@ -120,4 +122,4 @@ if __name__ == '__main__':
 	ddG_x2,ddG_y2 = create_lambdas_equiG(ddG_x,ddG_y,nsim)
 
 	print("Equidistant lambdas with respect to ddG:\n",ddG_x2)
-	plot_interpolation(ddG_x2,ddG_y2,ddG_x_interp,ddG_y_interp)
+	plot_interpolation(ddG_x,ddG_y,ddG_x2,ddG_y2,ddG_x_interp,ddG_y_interp)

@@ -35,7 +35,7 @@ def find_intervals(x,y):
 	if k==0:
 		intervals.append([0.00,1.00])
 		dividedfunc.append([x,y])
-		plt.plot(x,y)
+#		plt.plot(x,y)
 	# fix last interval
 	if start_i != len(dy)-1:
 		print("monotonic ddG(x) on interval: [",x[start_i],x[-1],"]")
@@ -86,6 +86,7 @@ def lambdas_per_interval(nsim,weights):
 def plot_intervals(intervals,dividedfunc):
 	""" Plot ddG interpolated function colored according to intervals 
 	and separated by vertical lines. """
+	plt.rc('text', usetex=True)
 	axes = plt.gca()
 	# fig, ax = plt.subplots(figsize=(10, 8))
 	for pl in dividedfunc:
@@ -94,15 +95,14 @@ def plot_intervals(intervals,dividedfunc):
 	ymin,ymax = axes.get_ylim()
 	for pl in dividedfunc:
 		plt.vlines(pl[0][0],ymax=pl[1][0],ymin=ymin,linestyle='dotted',color='gray',linewidth=1)
-	
-	plt.rc('text', usetex=True)
+
 	plot_labels = ["[{:.2f}, {:.2f}]".format(k[0],k[1]) for k in intervals]
 	plt.xlabel(r'$\lambda$') 
 	plt.ylabel(r"$\Delta \Delta G / \mathrm{kJ mol^{-1}}$")
 	plt.legend(plot_labels, loc='best')
 #	plt.show()
 	plt.savefig("ddG_intervals.pdf")
-
+	plt.close()
 
 if __name__ == '__main__':
 	# DEBUG
