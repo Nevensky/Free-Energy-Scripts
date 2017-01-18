@@ -67,10 +67,14 @@ def lambdas_per_interval(nsim,weights):
 		while True:
 			print("Sum of weighted lambdas: ",sum_lambdas,"\n\tRounding errors: ",rounding_errors,"\n\tMax:",np.amax(rounding_errors),"Max_idx: ",np.argmax(rounding_errors))
 			if sum_lambdas<nsim:
-				if np.abs(sum_lambdas-nsim)>1 or num_lambdas[-1]!=0:
+				if np.abs(sum_lambdas-nsim)>2 or num_lambdas[-1]!=0 or num_lambdas[0]!=0:
 					max_idx = np.argmax(rounding_errors)
 					num_lambdas[max_idx] += 1
 					rounding_errors[max_idx] = 0
+					sum_lambdas = np.sum(num_lambdas)
+				elif num_lambdas[0]==0 and np.abs(sum_lambdas-nsim)==2:
+					print("Fixed first interval instead of weighted interval with corresponding maximum variance.")
+					num_lambdas[0] += 1
 					sum_lambdas = np.sum(num_lambdas)
 				elif num_lambdas[-1]==0 and np.abs(sum_lambdas-nsim)==1:
 					print("Fixed last interval instead of weighted interval with corresponding maximum variance.")
@@ -83,7 +87,7 @@ def lambdas_per_interval(nsim,weights):
 		raise SystemExit(0) # prekida program
 	return num_lambdas,sum_lambdas
 
-def plot_intervals(intervals,dividedfunc):
+def plot_intervals(intervals,dividedfunc,close=True,save=True):
 	""" Plot ddG interpolated function colored according to intervals 
 	and separated by vertical lines. """
 	plt.rc('text', usetex=True)
@@ -101,8 +105,10 @@ def plot_intervals(intervals,dividedfunc):
 	plt.ylabel(r"$\Delta \Delta G / \mathrm{kJ mol^{-1}}$")
 	plt.legend(plot_labels, loc='best')
 #	plt.show()
-	plt.savefig("ddG_intervals.pdf")
-	plt.close()
+	if save:
+		plt.savefig("ddG_intervals.pdf")
+	if close:
+		plt.close()
 
 if __name__ == '__main__':
 	# DEBUG

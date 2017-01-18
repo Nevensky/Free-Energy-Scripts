@@ -75,13 +75,13 @@ def create_lambdas_equiG(ddG_x,ddG_y,nsim,already_interp=False):
 	ddG_y_max = np.amax(ddG_y_interp_func(ddG_x))
 	equi_ddG = np.abs(ddG_y_max-ddG_y_min)/nsim
 
-	ddG_y2 = np.asarray([ddG_y_min + i*equi_ddG for i in range(nsim-1)])
+	ddG_y2 = np.asarray([ddG_y_min + i*equi_ddG for i in range(nsim)])
 	ddG_x2_func = interp1d(ddG_y_interp,ddG_x_interp,kind='linear')
 	ddG_x2 = ddG_x2_func(ddG_y2)
 
 	# fix last interval by appending missing ddG_y value for lambda=1.0
-	ddG_x2 = np.append(ddG_x2,0.0)
-	ddG_y2 = np.append(ddG_y2,ddG_y[0])
+	# ddG_x2 = np.append(ddG_x2,0.0)
+	# ddG_y2 = np.append(ddG_y2,ddG_y[0])
 
 	# reverse order of lambdas to 0->1
 	ddG_x2 = ddG_x2[::-1]
@@ -101,7 +101,7 @@ def create_lambdas_equiG(ddG_x,ddG_y,nsim,already_interp=False):
 	return ddG_x2,ddG_y2	
 
 
-def plot_interpolation(ddG_x,ddG_y,ddG_x2,ddG_y2,ddG_x_interp,ddG_y_interp):
+def plot_interpolation(ddG_x,ddG_y,ddG_x2,ddG_y2,ddG_x_interp,ddG_y_interp,close=True,save=True):
 	""" Plot interpolated function with overlayed input lambdas 
 	and equidistant lambdas with respect to ddG_y. """
 	plt.rc('text', usetex=True)
@@ -111,8 +111,10 @@ def plot_interpolation(ddG_x,ddG_y,ddG_x2,ddG_y2,ddG_x_interp,ddG_y_interp):
 	plt.legend(['input lambdas', 'cub/lin interpolated lambdas','cubic interpolation func'], loc='best')
 	plt.xlabel(r'$\lambda$') 
 	plt.ylabel(r"$\Delta \Delta G / \mathrm{kJ mol^{-1}}$")
-	plt.savefig('ddG_interpolation.pdf')
-	plt.close()
+	if save:
+		plt.savefig('ddG_interpolation.pdf')
+	if close:
+		plt.close()
 
 if __name__ == '__main__':
 	#nsim=int(input("Input number of sims: \n >>>"))

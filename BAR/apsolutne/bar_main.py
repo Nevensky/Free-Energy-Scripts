@@ -7,6 +7,8 @@ import os
 from termcolor import colored
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.rcParams['text.usetex'] = True
 
 import ddGintervals as barint
 import importbar as bar
@@ -18,7 +20,6 @@ import importbar as bar
 @click.option('-nsim',default=20,help='Total number of simulations.')
 @click.option('-bar_file',default=os.getcwd()+'/bar_results.txt',help='BAR results file from previous simulation.')
 #@click.option('-dir',default=os.getcwd(),help='Simulation root directory.')
-
 
 def inputs(nsim,bar_file):
 	# interpolate inital function over the whole interval [0,1]	
@@ -36,19 +37,49 @@ def inputs(nsim,bar_file):
 	lambdas_per_interval = barint.lambdas_per_interval(nsim,weights)
 	print("Weights: ",weights)
 	print("Number of lambdas per interval & sum: ",lambdas_per_interval)
-#	barint.plot_intervals(intervals,ddGfunction)
+	barint.plot_intervals(intervals,ddGfunction,close=False)
+	
+	plt.plot(ddG_x[0],ddG_y[0],'o',markersize=5)
+	lambda_matrix = partition_lambdas(ddGfunction,intervals,lambdas_per_interval)
+	print(70*"~",u"\n ########  Final lambdas equidistant with respect to \u0394\u0394G(\u03BB)  ########","\n",70*"~","\n",colored(lambda_matrix,"green",attrs=["bold"]),"\n",70*"~")
 
+def partition_lambdas(ddGfunction,intervals,lambdas_per_interval):
+	""" Outputs equidistant lambdas with respect to ddG. 
+	!! Currently also implements plot_ddG(x,y) functionality."""
+#	plt.rc('text', usetex=True)
+	plt.rc('legend',**{'fontsize':6})
+	lambdas = []
+	plot_labels = [r"$\Delta\Delta G{}([{:.2f}, {:.2f}])$".format("_\\mathrm{interp}",k[0],k[1]) for k in intervals]
+	plot_labels.append(r"$\Delta\Delta G(\lambda=0)$")
 	for idx,item in enumerate(ddGfunction):
-		nsim_i = lambdas_per_interval[0][idx]
-		if nsim_i != 0:
-			x,y=bar.create_lambdas_equiG(item[0][::-1],item[1][::-1],nsim_i,already_interp=True)
-			print("Equidistant lambdas with respect to ddG on interval ",colored(str(intervals[idx]),"yellow",attrs=["bold"]),":\n",colored(x,"green",attrs=["bold"]))
-			plt.plot(item[0][::-1],item[1][::-1],'-',markersize=5,fillstyle='none')
+		lints_i = lambdas_per_interval[0][idx]
+		if lints_i != 0:
+			x,y=bar.create_lambdas_equiG(item[0][::-1],item[1][::-1],lints_i,already_interp=True)
+			lambdas.append(x)
+			print("Equidistant lambdas with respect to ddG on interval: ",colored("[{:.2f}, {:.2f}]".format(intervals[idx][0],intervals[idx][1]),"yellow",attrs=["bold"]),"\n",colored(x,"green"))
+			# plt.plot(item[0][::-1],item[1][::-1],'-')
 			plt.plot(x,y,'o',markersize=5)
-			#plt.plot(ddG_x_interp, ddG_y_interp, '-')
-	plt.show()
-	plt.close()
+			plot_labels.append(r"$\Delta\Delta G(\lambda \vert \lambda \subset [{:.2f}, {:.2f}])$".format(intervals[idx][0],intervals[idx][1]))
+		else:
+			print("Skipping interval:",colored("[{:.2f}, {:.2f}]".format(intervals[idx][0],intervals[idx][1]),"red",attrs=["bold"]))
 
+	# fix first and last value of lambda, λ(0)=0 λ(1)=1	
+	lambdas = np.concatenate(lambdas)
+	lambdas[0] = 0
+	lambdas[-1] = 1
+	
+	#plt.show()
+	plt.legend(plot_labels,loc='best')
+	plt.xlabel(r'$\lambda$')
+	plt.ylabel(r"$\Delta \Delta G / \mathrm{kJ mol^{-1}}$")
+	plt.savefig("ddG_plot.pdf")
+	plt.close()
+	return lambdas
+
+def plot_ddG(x,y):
+	""" Plots input and equidistant (with respect to ddG) 
+	lambdas on partitioned intervals. """
+	pass
 
 if __name__ == '__main__':
 	inputs()
