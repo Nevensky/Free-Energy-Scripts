@@ -37,7 +37,7 @@ def inputs(nsim,bar_file):
 	lambdas_per_interval = barint.lambdas_per_interval(nsim,weights)
 	print("Weights: ",weights)
 	print("Number of lambdas per interval & sum: ",lambdas_per_interval)
-	barint.plot_intervals(intervals,ddGfunction,close=False)
+	barint.plot_intervals(intervals,ddGfunction,close=False,save=False)
 	
 	plt.plot(ddG_x[0],ddG_y[0],'o',markersize=5)
 	lambda_matrix = partition_lambdas(ddGfunction,intervals,lambdas_per_interval)
