@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import numpy as np
-from colorama import Fore,Style
 import click
 import os
 from termcolor import colored
@@ -72,7 +71,7 @@ def partition_lambdas(ddGfunction,intervals,lambdas_per_interval):
 	plt.legend(plot_labels,loc='best')
 	plt.xlabel(r'$\lambda$')
 	plt.ylabel(r"$\Delta \Delta G / \mathrm{kJ mol^{-1}}$")
-	plt.savefig("ddG_plot.pdf")
+	plt.savefig("analysis/ddG_plot.pdf")
 	plt.close()
 	return lambdas
 

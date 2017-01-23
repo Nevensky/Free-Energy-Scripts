@@ -2,7 +2,6 @@
 
 import sys, getopt
 import click
-from colorama import Fore,Style
 import os.path
 import numpy as np
 from scipy.interpolate import interp1d
@@ -112,7 +111,7 @@ def plot_interpolation(ddG_x,ddG_y,ddG_x2,ddG_y2,ddG_x_interp,ddG_y_interp,close
 	plt.xlabel(r'$\lambda$') 
 	plt.ylabel(r"$\Delta \Delta G / \mathrm{kJ mol^{-1}}$")
 	if save:
-		plt.savefig('ddG_interpolation.pdf')
+		plt.savefig('analysis/ddG_interpolation.pdf')
 	if close:
 		plt.close()
 
