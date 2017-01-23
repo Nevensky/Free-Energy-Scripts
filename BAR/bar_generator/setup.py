@@ -1,18 +1,12 @@
-from setuptools import setup
+#!/usr/bin/env python3
 
-setup(name='bar_generator',
-      version='0.1',
-      description='BAR simulation automation script.',
-      url='http://github.com/Nevensky/Free-Energy-Skripte',
-      author='Neven Golenic',
-      author_email='neven.golenic@gmail.com',
-      license='MIT',
-      packages=['funniest'],
-      install_requires=[
-          'numpy',
-          'scipy',
-          'matplotlib',
-          'termcolor',
-          'click'
-      ],
-      zip_safe=False)
+import os
+from subprocess import call
+
+call(["chmod","+x",os.getcwd()+"/bar_main.py"])
+call(["rm","-rf",os.getcwd()+"/bin/genbar"])
+call(["ln","-s",os.getcwd()+"/bar_main.py",os.getcwd()+"/bin/genbar"])
+
+home_dir = os.getenv("HOME")
+with open(home_dir+"/.bashrc","a") as f:
+  f.write("\n#BAR automation script\n"+"export PATH=$PATH:"+os.getcwd()+"/bin/genbar")

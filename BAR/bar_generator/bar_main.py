@@ -7,17 +7,15 @@ from termcolor import colored
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.rcParams['text.usetex'] = True
 
 import ddGintervals as barint
 import importbar as bar
 
-#print(colored(outut,"yellow",attrs=["bold"]))
+matplotlib.rcParams['text.usetex'] = True
 
 @click.command()
-
 @click.option('-nsim',default=20,help='Total number of simulations.')
-@click.option('-bar_file',default=os.getcwd()+'/bar_results.txt',help='BAR results file from previous simulation.')
+@click.option('-bar_file',default=os.getcwd()+'/bar_results.txt',help='BAR results file from a previous simulation.')
 #@click.option('-dir',default=os.getcwd(),help='Simulation root directory.')
 
 def inputs(nsim,bar_file):
@@ -45,7 +43,6 @@ def inputs(nsim,bar_file):
 def partition_lambdas(ddGfunction,intervals,lambdas_per_interval):
 	""" Outputs equidistant lambdas with respect to ddG. 
 	!! Currently also implements plot_ddG(x,y) functionality."""
-#	plt.rc('text', usetex=True)
 	plt.rc('legend',**{'fontsize':6})
 	lambdas = []
 	plot_labels = [r"$\Delta\Delta G{}([{:.2f}, {:.2f}])$".format("_\\mathrm{interp}",k[0],k[1]) for k in intervals]
@@ -76,8 +73,8 @@ def partition_lambdas(ddGfunction,intervals,lambdas_per_interval):
 	return lambdas
 
 def plot_ddG(x,y):
-	""" Plots input and equidistant (with respect to ddG) 
-	lambdas on partitioned intervals. """
+	""" Plots inputs and equidistant lambdas 
+	(with respect to ddG) on partitioned intervals. """
 	pass
 
 if __name__ == '__main__':
