@@ -6,11 +6,11 @@ import sys, getopt
 import click
 import os
 import numpy as np
-from scipy.interpolate import interp1d
+#from scipy.interpolate import interp1d
 #from numpy import interp as interp1d
 import matplotlib.pyplot as plt
 import re 
-from termcolor import colored
+#from termcolor import colored
 
 import ddGintervals
 import importbar as bar
@@ -40,21 +40,11 @@ root = os.getcwd()
 @click.option('-ncores',default=4,help='Number of cores per simulation.')
 @click.option('-pin',default='auto',help='Pin to cores.')
 
-def inputs(nsim,vdw,coul,mass,bonded,restraint,temp,root,mdp,min1,min2,nvt,npt,prod,ncores,pin):
-	"""Free Energy BAR input generator. \n
 
-Developed by Neven Golenic | neven.golenic@gmail.com
-
-\b
-Number of simulations [ N ] default:  20 
-\u03BB coupling interval [N_min,N_max] default: 0,0
-
-If BAR results from a previous simulation are imported, lambdas of different type must not overlap!
-
-\b
-Recommended inital folder structure:
-.
+tree = """.
 └── analysis
+|		|
+|		└─ bar
 |
 └── MDP
 |   |
@@ -68,157 +58,142 @@ Recommended inital folder structure:
 |   └─ Production_MD
 |       └── md.mdp
 |
-└── STRUCT
-      |
-      ├─ system.top
-      └─ system.gro
-	"""
-	check_analysis(root)
-	check_mdp(mdp,min1,min2,nvt,npt,prod) # ovo je dobro treba reaktivirati
-	coupling(nsim,vdw,coul,mass,bonded,restraint,temp)
+└── SYSTEM
+		|
+		├─ system.top
+		└─ system.gro"""
+
+def inputs(nsim,vdw,coul,mass,bonded,restraint,temp,root,mdp,min1,min2,nvt,npt,prod,ncores,pin):
+	"""Free Energy BAR input generator. \n
+Developed by Neven Golenic | neven.golenic@gmail.com
+\b
+Number of simulations [ N ] default:  20 
+\u03BB coupling interval [N_min,N_max] default: 0,0
+If BAR results from a previous simulation are imported, lambda vectors of different types must not overlap!
+\b
+Recommended inital folder structure:
+	"""+tree
+
+	check_dirs(root)
+	mdp_types= [min1,min2,nvt,npt,prod]
+	check_mdps(mdp,mdp_types)
+	cdict = coupling(nsim,vdw,coul,mass,bonded,restraint,temp)
+	cdict = fill_inactive_lambdas(nsim,cdict)
+	print(cdict)
 
 	return None
 
-def check_analysis(root):
-	if os.path.isdir(root+"/analysis"):
-		pass
-	else:
-		os.makedirs(root+"/analysis")
+def check_dirs(root):
+	"""
+	Check if given directories exist and create them if they don't.
+	"""
+	dir_array = [root+"/analysis",root+"/analysis/bar",root+"/jobs"]
+	for item in dir_array
+		try:
+			os.makedirs(item)
+		except FileExistsError:
+			pass
+	return None
 
-def check_mdp(mdp,min1,min2,nvt,npt,prod):
+def check_mdps(mdp,mdp_types):
 	""" 
 	Check if MDP file exists or if all 
 	.mdp files were specified manually 
 	"""
-	if os.path.exists(min1) and os.path.exists(min2) and os.path.exists(nvt) and os.path.exists(npt) and os.path.exists(prod):
-		pass	
-	elif os.path.isdir(mdp) :
-		if os.path.exists(mdp+'/EM/em_steep.mdp') and os.path.exists(mdp+'/EM/em_l-bfgs.mdp') and os.path.exists(mdp+'/NVT/nvt.mdp')==True and os.path.exists(mdp+'/NPT/npt.mdp') and os.path.exists(mdp+'/Production_MD/md.mdp'):
-			pass
-		else: 
-			print(colored("""ERROR: MDP folder corrupt. Expected folder structure:\n
-				└── analysis
-				|
-				└── MDP
-				|   |
-				|   ├─ EM
-				|   |  ├── em_steep.mdp
-				|   |  └── em_l-bfgs.mdp
-				|   ├─ NVT
-				|   |   └── nvt.mdp 
-				|   ├─ NPT
-				|   |   └── npt.mdp 
-				|   └─ Production_MD
-				|       └── md.mdp
-				|
-				└── STRUCT
-				      |
-				      ├─ system.top
-				      └─ system.gro
-				""","red",attrs=["bold"]))
-			exit()
+	if os.path.isdir(mdp):
+		pass
 	else:
-		print(colored("ERROR: MDP folder not found, please specify correct MDP file paths manually.","red",attrs=["bold"]))
-		auto_initialize = input("Intialize MDP files automatically? yes/no :")
-		if auto_initialize=="yes" or auto_initialize=="y":
-			print("Currently not implemented. You must intialize MDP files manually.")
-			exit()
+		print(color("ERROR: MDP folder corrupt. Expected folder structure:\n"+tree,"red"))
+		
+	for item in mdp_types:
+		if os.path.exists(item):
+			pass
 		else:
+			print(color("ERROR: MDP folder corrupt. Expected folder structure:\n"+tree,"red"))
 			exit()
 
-# def import_mdp_old(min1,min2,nvt,npt,prod,vdw_lambdas):
-# #   pass # jer je ova funkcija losa
-# 	# Imports mdp files and replaces them with new ones with correct lambdas
-# 	with open(min1) as file:
-# 		filedata = open('MDP/em_steep.mdp','w')
-# 		for line in file:
-# 			#filedata = file.read(line.replace('vdw_lambdas',vdw_lambdas))
-# 			if "vdw_lambdas" in line:
-# 				filedata.write(vdw_lambdas)
-# 			else:
-# 				filedata.write(line)
-# 				filedata.close()
-# 	#    filedata = filedata.replace('vdw_lambdas', vdw_lambdas)
-# 	# Write the file out again
-# #    with open('file.txt', 'w') as file:
-# #        file.write(filedata)
+#		auto_initialize = input("Intialize MDP files automatically? yes/no :")
+#		if auto_initialize=="yes" or auto_initialize=="y":
+#			print("Currently not implemented. You must intialize MDP files manually.")
+#			exit()
 
-
-def write_mdp():
-	return None
-
-def gen_mdp():
-	return None
-
-def import_mdp(mdp_file):
+def gen_nsim_mdps(nsim,mdp_types):
 	""" 
-	Import MDP file and read lambda values 
-	for each lambda type into globar vars.
+	! ne valja zamijeniti
+	Generates mdp files of each type for 
+	each simulation up to total nsim.
+	"""
+	mdp_types= [min1,min2,nvt,npt,prod]
+	for mdp_type in mdp_types:
+		with open(mdp_type,'r') as f1:
+			mdp_i = f1.read()
+			for i in range(nsim+1):
+				mdp_path_i = mdp_type.replace('.mdp','')+str(i)+'.mdp'
+				with open(mdp_path_i,'a') as f2: 
+					for line in mdp_i:
+						if 'init_lambda_state' in line:
+							f2.write('init_lambda_state      = '=str(i)='\n')
+						else:
+							f2.write(line)
+
+def import_mdp(mdp_file,dict):
+	""" 
+	Import a MDP file and read lambda values 
+	for each lambda type if coupling not specified.
 	"""
 	with open(mdp_file,'r+') as f:
 		k = f.readlines()      
 		for line in k:
-			if "coul_lambdas" in line:
-				global coul_lambdas_mdp
-				coul_lambdas_mdp = line.split(' ')
-			#         print(line)
-			if "vdw_lambdas" in line:
-				global vdw_lambdas_mdp
-				coul_lambdas_mdp = line.split(' ')
-				print(line)         
-				if "mass_lambdas" in line:
-					global mass_lambdas_mdp
-					mass_lambdas_mdp = line.split(' ')
-			#         print(line)
-			if "bonded_lambdas" in line:
-				global bond_lambdas_mdp
-				bond_lambdas_mdp = line.split(' ')
-			#         print(line)  
-			if "restraint_lambdas" in line:
-				global rest_lambdas_mdp
-				rest_lambdas_mdp = line.split(' ')
-			#         print(line)
-			if "temperature_lambdas" in line:
-				global temp_lambdas_mdp
-				temp_lambdas_mdp = line.split(' ')                         
+			for key in dict:
+				if (dict[key] == False) and (key in line):
+					dict[key] = key+" = "+" ".join(str2array(line))
+	return dict
 
 def coupling(nsim,vdw,coul,mass,bonded,restraint,temp):
-	if vdw!=False:
-		vdw=vdw.split(',')
-		vdwstr='Coupling van der Waals interactions from '+colored(unil+'({0})',"magenta",attrs=["bold"])+' to '+colored(unil+'({1})',"magenta",attrs=["bold"])
-		print(vdwstr.format(vdw[0],vdw[1]))
-		vdw_lambdas = 'vdw_lambdas = '+" ".join(create_lambdas(nsim,int(vdw[0]),int(vdw[1])))
-		println(vdw_lambdas)
-	#		import_mdp(nvt)
-	if coul!=False:
-		coul=coul.split(',')
-		coulstr='Coupling Coulomb interactions from '+colored(unil+'({0})',"magenta",attrs=["bold"])+' to '+colored(unil+'({0})',"magenta",attrs=["bold"])
-		print(coulstr.format(coul[0],coul[1]))
-		coul_lambdas='coul_lambdas = '+" ".join(create_lambdas(nsim,int(coul[0]),int(coul[1])))
-		println(coul_lambdas)
-	if mass!=False:
-		mass=mass.split(',')
-		massstr='Coupling mass lambdas from '+colored(unil+'({0})',"magenta",attrs=["bold"])+' to '+colored(unil+'({0})',"magenta",attrs=["bold"])
-		print(massstr.format(mass[0],mass[1]))
-		mass_lambdas='mass_lambdas = '+" ".join(create_lambdas(nsim,int(mass[0]),int(mass[1])))
-		println(mass_lambdas)
-
-
-def create_lambdas(nsim,start,end):
+	"""
+	Defines a coupling dictionary which contains specified lambda intervals.
+	Intervals are replaced by lambda vectors and written back to the dictionary. 
+	"""
+	coupling_dict = {'vdw_lambdas':vdw,'coul_lambdas':coul,'mass_lambdas':mass,'bonded_lambdas':bonded,'restraint_lambdas':restraint,'temperature_lambdas':temp}	
+	for key in coupling_dict:
+		if coupling_dict[key] != False
+			lint = coupling_dict[key].split(',') #split coupling interval
+			lstring = 'Coupling {type} from '+color(unil+'({0})',"magenta")+' to '+color(unil+'({1})',"magenta")
+			print(lstring.format(lint[0],lint[1],type=key))
+			coupling_dict[key] = key+" = "+" ".join(create_lambdas(nsim,int(lint[0]),int(lint[1])))
+			println(coupling_dict[key])
+	return coupling_dict
+	
+def fill_inactive_lambdas(nsim,dict):
 	""" 
-	Creates lambda values partiationed as a linspace. 
+	Fill lambdas values with zeros up to nsim for all inactive lambda types. 
+	"""
+	for key in dict:
+		if dict[key]==False:
+			dict[key] = key+' = '+nsim*' 0.0000'
+	return dict
+
+def create_lambdas(nsim,start,end,bar):
+	""" 
+	Creates lambda values partiationed as a linspace if bar_results file not provided.
+	Otherwise create equidistant lambdas with respect to ddG(lambda). 
 	"""
 	if start==end:
-		print(colored("ERROR: Interval [0,0] specified. \nPlease do not specify intervals for lambdas which won't change during the simulation.","red",attrs=["bold"]))
+		print(color("ERROR: Interval [0,0] specified. \nPlease do not specify intervals for inactive lambda types.","red"))
+		exit()	
+
+	lambdas = []	
+	if bar==False:
+		lambda_0 = 1.0/(end-start)
+		for i in range(nsim+1):
+			lambda_i=lambda_0*(i-start)
+			if i>=start and i<=end:
+				lambdas.append("{0:.4f}".format(lambda_i))
+			else:
+				lambdas.append("0.0000")
+	else:
+		# MISSING CALL TO barmain()
 		exit()
-	lambdas = []
-	lambda_0 = 1.0/(end-start)
-	for i in range(nsim+1):
-		lambda_i=lambda_0*(i-start)
-		if i>=start and i<=end:
-			lambdas.append("{0:.4f}".format(lambda_i))
-		else:
-			lambdas.append("0.0000")
 	return lambdas
 
 def str2array(string):
@@ -234,6 +209,13 @@ def str2array(string):
 			pass
 	return z
 #print(str2array(temp_lambdas_mdp))
+
+def color(x,c="yellow"):
+	"""
+	Colors and bolds string for print() output.
+	"""
+	x = colored(x,c,attrs=["bold"])
+	return x
 
 def println(x):
 	"""	
