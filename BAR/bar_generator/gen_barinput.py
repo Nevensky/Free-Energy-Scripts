@@ -12,8 +12,9 @@ import matplotlib.pyplot as plt
 import re 
 #from termcolor import colored
 
-import ddGintervals
-import importbar as bar
+# import ddGintervals
+# import importbar as bar
+import bar_main as barmain
 
 root = os.getcwd()
 tree = """.
@@ -56,6 +57,8 @@ tree = """.
 @click.option('-npt',default=root+'/MDP/NPT/npt.mdp',help='MDP file of NPT equilibration.')
 @click.option('-prod',default=root+'/MDP/Production_MD/md.mdp',help='MDP file of the Production run.')
 
+@click.option('-bar_file',default=root+'/analysis/bar_results.txt',help='BAR results file from a previous simulation.')
+
 @click.option('-ncores',default=8,help='Number of cores per simulation.')
 @click.option('-pin',default='auto',help='Pin to cores.')
 
@@ -97,7 +100,7 @@ Recommended inital folder structure:
 	mdp_types= [min1,min2,nvt,npt,prod]
 	check_mdps(mdp,mdp_types)
 	cdict = coupling(nsim,vdw,coul,mass,bonded,restraint,temp)
-	cdict = fill_inactive_lambdas(nsim,cdict)
+	cdict = fill_inactive_lambdas(nsim,cdict,bar)
 	print(cdict)
 
 	gen_mdps(mdp,nsim,cdict)
@@ -179,7 +182,7 @@ def fill_inactive_lambdas(nsim,dict):
 			dict[key] = key+' = '+nsim*' 0.0000'
 	return dict
 
-def create_lambdas(nsim,start,end,bar):
+def create_lambdas(nsim,start,end,bar_file=bar_file):
 	""" 
 	Creates lambda values partiationed as a linspace if bar_results file not provided.
 	Otherwise create equidistant lambdas with respect to ddG(lambda). 
@@ -189,7 +192,7 @@ def create_lambdas(nsim,start,end,bar):
 		exit()	
 
 	lambdas = []	
-	if bar==False:
+	if os.path.isfile(bar_file)==False:
 		lambda_0 = 1.0/(end-start)
 		for i in range(nsim+1):
 			lambda_i=lambda_0*(i-start)
@@ -198,8 +201,15 @@ def create_lambdas(nsim,start,end,bar):
 			else:
 				lambdas.append("0.0000")
 	else:
-		# MISSING CALL TO barmain()
-		exit()
+		nsim_per_interval = int(end-start)
+		lambda_matrix = barmain.inputs(nsim_per_interval)
+		lambda_string = [str(k) for k in lambda_matrix]
+		for i in range(nsim+1):
+			for k in lambda_matrix:
+				if i>=start and i<=end:
+					lambdas.append("{0:.4f}".format(k))
+				else:
+					lambdas.append("0.0000")
 	return lambdas
 
 ########################################

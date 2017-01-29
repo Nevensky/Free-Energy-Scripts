@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
-import click
+#import click
 import os
 from termcolor import colored
 from scipy.interpolate import interp1d
@@ -13,10 +13,10 @@ import importbar as bar
 
 matplotlib.rcParams['text.usetex'] = True
 
-@click.command()
-@click.option('-nsim',default=20,help='Total number of simulations.')
-@click.option('-bar_file',default=os.getcwd()+'/bar_results.txt',help='BAR results file from a previous simulation.')
-#@click.option('-dir',default=os.getcwd(),help='Simulation root directory.')
+# @click.command()
+# @click.option('-nsim',default=20,help='Total number of simulations.')
+# @click.option('-bar_file',default=os.getcwd()+'/bar_results.txt',help='BAR results file from a previous simulation.')
+# #@click.option('-dir',default=os.getcwd(),help='Simulation root directory.')
 
 def inputs(nsim,bar_file):
 	# interpolate inital function over the whole interval [0,1]	
@@ -39,6 +39,7 @@ def inputs(nsim,bar_file):
 	plt.plot(ddG_x[0],ddG_y[0],'o',markersize=5)
 	lambda_matrix = partition_lambdas(ddGfunction,intervals,lambdas_per_interval)
 	print(70*"~",u"\n ########  Final lambdas equidistant with respect to \u0394\u0394G(\u03BB)  ########","\n",70*"~","\n",colored(lambda_matrix,"green",attrs=["bold"]),"\n",70*"~")
+	return lambda_matrix
 
 def partition_lambdas(ddGfunction,intervals,lambdas_per_interval):
 	""" Outputs equidistant lambdas with respect to ddG. 
@@ -78,4 +79,8 @@ def plot_ddG(x,y):
 	pass
 
 if __name__ == '__main__':
-	inputs()
+#	inputs()
+	nsim = 20
+	root = os.getcwd()
+	bar_file = root+'/bar_results.txt'
+	inputs(nsim,bar_file)
