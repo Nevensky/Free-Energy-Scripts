@@ -1,36 +1,18 @@
 #!/usr/bin/env python3
 
-import click
 import os
-#from termcolor import colored
-
-root = os.getcwd()
-
-@click.command()
-
-@click.option('-nsim',default=20,help='Total number of simulations.')
 
 
-@click.option('-root',default=root,help='Simulation root folder. See help for folder structure.')
-@click.option('-mdp',default=root+'/MDP',help='MDP folder.')
-@click.option('-min1',default=root+'/MDP/EM/em_steep.mdp',help='MDP of steepest decent minimization.')
-@click.option('-min2',default=root+'/MDP/EM/em_l-bfgs.mdp',help='MDP of L-BFGS minimization.')
-@click.option('-nvt',default=root+'/MDP/NVT/nvt.mdp',help='MDP of NVT equilibration.')
-@click.option('-npt',default=root+'/MDP/NPT/npt.mdp',help='MDP of NPT equilibration.')
-@click.option('-prod',default=root+'/MDP/Production_MD/md.mdp',help='MDP of the production run.')
-
-@click.option('-ncores',default=8,help='Number of cores per simulation.')
-@click.option('-pin',default='auto',help='Pin to cores.')
-
-def inputs(nsim,root,mdp,min1,min2,nvt,npt,prod,ncores,pin):
+def run_all(nsim,root,mdp,min1,min2,nvt,npt,prod,ncores,pin,run_at_once=False):
 	gen_mdps(min1,nsim)
 	gen_mdps(min2,nsim)
 	gen_mdps(nvt,nsim)
 	gen_mdps(npt,nsim)
 	gen_mdps(prod,nsim)
 	gen_jobs(nsim,root,ncores,pin)
-	gen_runs(nsim,root)
-	gen_bar_results(nsim,root)
+	gen_runs(nsim,root,run_at_once=run_at_once)
+	if run_at_once:
+		gen_bar_results(nsim,root)
 	return None
 	
 def gen_mdps(file,nsim):
@@ -168,4 +150,14 @@ def gen_bar_results(nsim,root):
 	return None
 
 if __name__ == '__main__':
-	inputs()
+	nsim = 20
+	root = os.getcwd()
+	mdp = root+'/MDP'
+	min1 = root+'/MDP/EM/em_steep.mdp'
+	min2 = root+'/MDP/EM/em_l-bfgs.mdp
+	nvt = root+'/MDP/NVT/nvt.mdp'
+	npt =root+'/MDP/NPT/npt.mdp'
+	prod = root+'/MDP/Production_MD/md.mdp'
+	ncores = 8
+	pin = "auto"
+	run_all(nsim,root,mdp,min1,min2,nvt,npt,prod,ncores,pin,run_at_once=False)
