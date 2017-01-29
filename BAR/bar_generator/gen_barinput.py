@@ -10,7 +10,7 @@ import numpy as np
 #from numpy import interp as interp1d
 import matplotlib.pyplot as plt
 import re 
-#from termcolor import colored
+from termcolor import colored
 
 # import ddGintervals
 # import importbar as bar
@@ -100,15 +100,16 @@ Recommended inital folder structure:
 	mdp_types= [min1,min2,nvt,npt,prod]
 	check_mdps(mdp,mdp_types)
 	cdict = coupling(nsim,vdw,coul,mass,bonded,restraint,temp,bar_file)
-	cdict = fill_inactive_lambdas(nsim,cdict,bar)
-	print(cdict)
+	cdict = fill_inactive_lambdas(nsim,cdict)
+#	print(cdict)
 
-	gen_mdps(mdp,nsim,cdict)
 	gen_mdps(min2,nsim,cdict)
 	gen_mdps(nvt,nsim,cdict)
 	gen_mdps(npt,nsim,cdict)
 	gen_mdps(prod,nsim,cdict)
 	gen_jobs(nsim,root,ncores,pin)
+
+	run_at_once = False # Currently not implemented
 	gen_runs(nsim,root,run_at_once=run_at_once)
 	if run_at_once:
 		gen_bar_results(nsim,root)
@@ -182,7 +183,7 @@ def fill_inactive_lambdas(nsim,dict):
 			dict[key] = key+' = '+nsim*' 0.0000'
 	return dict
 
-def create_lambdas(nsim,start,end):
+def create_lambdas(nsim,start,end,bar_file):
 	""" 
 	Creates lambda values partiationed as a linspace if bar_results file not provided.
 	Otherwise create equidistant lambdas with respect to ddG(lambda). 
@@ -198,18 +199,20 @@ def create_lambdas(nsim,start,end):
 			lambda_i=lambda_0*(i-start)
 			if i>=start and i<=end:
 				lambdas.append("{0:.4f}".format(lambda_i))
-			else:
+			elif i<end:
 				lambdas.append("0.0000")
+			elif i>end:
+				lambdas.append("1.0000")
 	else:
 		nsim_per_interval = int(end-start)
-		lambda_matrix = barmain.inputs(nsim_per_interval)
+		lambda_matrix = barmain.inputs(nsim_per_interval,bar_file)
 		lambda_string = [str(k) for k in lambda_matrix]
-		for i in range(nsim+1):
-			for k in lambda_matrix:
-				if i>=start and i<=end:
-					lambdas.append("{0:.4f}".format(k))
-				else:
-					lambdas.append("0.0000")
+		for i in range(start):
+			lambdas.append("0.0000")		
+		for k in lambda_matrix:
+			lambdas.append("{0:.4f}".format(k))
+		for i in range(nsim-end):
+			lambdas.append("1.0000")
 	return lambdas
 
 ########################################
@@ -254,18 +257,22 @@ def gen_mdps(file,nsim,cdict):
 #			print("Written to file: "+new_file_path)
 			wrt1 = False
 			wrt2 = [False for k in range(6)]
-			z = 0
+			z1 = 0
 			for line in mdp_file:
 				if "init_lambda_state" in line and wrt1==False:
 					f2.write('init_lambda_state         = '+str(i)+'\n')
 					wrt1=True
 				else:
+					wrt3 = False
 					for key in cdict:
-						if key in line and wrt2[z]==False:
-							f2.write(cdict[key])
-							wrt2[z]=True
-						else:
+						if key in line and wrt2[z1]==False:
+							f2.write(cdict[key]+"\n")
+							wrt2[z1]=True
+							z1 += 1
+						# explicitly stated conditions (very bad!), needs rewritting
+						elif wrt3==False and "vdw_lambdas" not in line and "coul_lambdas" not in line and "mass_lambdas" not in line and "bonded_lambdas" not in line and "restraint_lambdas" not in line and "temperature_lambdas" not in line:
 							f2.write(line)
+							wrt3 = True
 	return None
 
 def gen_jobs(nsim,root,ncores,pin):
