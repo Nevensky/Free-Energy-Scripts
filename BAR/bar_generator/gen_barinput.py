@@ -63,7 +63,7 @@ tree = """.
 @click.option('-pin',default='auto',help='Pin to cores.')
 
 
-def inputs(nsim,vdw,coul,mass,bonded,restraint,temp,root,mdp,min1,min2,nvt,npt,prod,ncores,pin):
+def inputs(nsim,vdw,coul,mass,bonded,restraint,temp,root,mdp,min1,min2,nvt,npt,prod,bar_file,ncores,pin):
 	"""Free Energy BAR input generator. \n
 Developed by Neven Golenic | neven.golenic@gmail.com
 
@@ -99,7 +99,7 @@ Recommended inital folder structure:
 	check_dirs(root)
 	mdp_types= [min1,min2,nvt,npt,prod]
 	check_mdps(mdp,mdp_types)
-	cdict = coupling(nsim,vdw,coul,mass,bonded,restraint,temp)
+	cdict = coupling(nsim,vdw,coul,mass,bonded,restraint,temp,bar_file)
 	cdict = fill_inactive_lambdas(nsim,cdict,bar)
 	print(cdict)
 
@@ -158,7 +158,7 @@ def check_mdps(mdp,mdp_types):
 # Coupling ddictionary and lambda vector creation. #
 ####################################################
 
-def coupling(nsim,vdw,coul,mass,bonded,restraint,temp):
+def coupling(nsim,vdw,coul,mass,bonded,restraint,temp,bar_file):
 	"""
 	Defines a coupling dictionary which contains specified lambda intervals.
 	Intervals are replaced by lambda vectors and written back to the dictionary. 
@@ -169,7 +169,7 @@ def coupling(nsim,vdw,coul,mass,bonded,restraint,temp):
 			lint = coupling_dict[key].split(',') #split coupling interval
 			lstring = 'Coupling {type} from '+color('λ({0})',"magenta")+' to '+color('λ({1})',"magenta")
 			print(lstring.format(lint[0],lint[1],type=key))
-			coupling_dict[key] = key+" = "+" ".join(create_lambdas(nsim,int(lint[0]),int(lint[1])))
+			coupling_dict[key] = key+" = "+" ".join(create_lambdas(nsim,int(lint[0]),int(lint[1]),bar_file=bar_file))
 			println(coupling_dict[key])
 	return coupling_dict
 	
@@ -182,7 +182,7 @@ def fill_inactive_lambdas(nsim,dict):
 			dict[key] = key+' = '+nsim*' 0.0000'
 	return dict
 
-def create_lambdas(nsim,start,end,bar_file=bar_file):
+def create_lambdas(nsim,start,end):
 	""" 
 	Creates lambda values partiationed as a linspace if bar_results file not provided.
 	Otherwise create equidistant lambdas with respect to ddG(lambda). 
