@@ -15,32 +15,7 @@ import re
 import ddGintervals
 import importbar as bar
 
-unil='\u03BB'
-
 root = os.getcwd()
-
-@click.command()
-
-@click.option('-nsim',default=20,help='Total number of simulations.')
-@click.option('-vdw',default=False,help='Mutate van der Waals interactions.')
-@click.option('-coul',default=False,help='Mutate Coulomb interactions.')
-@click.option('-mass',default=False,help='Mutate mass of species.')
-@click.option('-bonded',default=False,help='Mutate bonded interactions.')
-@click.option('-restraint',default=False,help='Mutate restrained interactions.')
-@click.option('-temp',default=False,help='Simulated temptering.')
-
-@click.option('-root',default=root,help='Total number of simulations.')
-@click.option('-mdp',default=root+'/MDP',help='MDP folder.')
-@click.option('-min1',default=root+'/MDP/EM/em_steep.mdp',help='MDP of steepest decent minimization.')
-@click.option('-min2',default=root+'/MDP/EM/em_l-bfgs.mdp',help='MDP of L-BFGS minimization.')
-@click.option('-nvt',default=root+'/MDP/NVT/nvt.mdp',help='MDP of NVT equilibration.')
-@click.option('-npt',default=root+'./MDP/NPT/npt.mdp',help='MDP of NPT equilibration.')
-@click.option('-prod',default=root+'/MDP/Production_MD/md.mdp',help='MDP of the production run.')
-
-@click.option('-ncores',default=4,help='Number of cores per simulation.')
-@click.option('-pin',default='auto',help='Pin to cores.')
-
-
 tree = """.
 └── analysis
 |		|
@@ -63,16 +38,51 @@ tree = """.
 		├─ system.top
 		└─ system.gro"""
 
+@click.command(context_settings=dict(help_option_names=['-h', '-help']))
+
+@click.option('-nsim',default=20,help='Total number of simulations.')
+@click.option('-vdw',default=False,help='Mutate van der Waals interactions.')
+@click.option('-coul',default=False,help='Mutate Coulomb interactions.')
+@click.option('-mass',default=False,help='Mutate mass of species.')
+@click.option('-bonded',default=False,help='Mutate bonded interactions.')
+@click.option('-restraint',default=False,help='Mutate restrained interactions.')
+@click.option('-temp',default=False,help='Simulated temptering.')
+
+@click.option('-root',default=root,help='Simulation root folder. See help for folder structure.')
+@click.option('-mdp',default=root+'/MDP',help='MDP folder.')
+@click.option('-min1',default=root+'/MDP/EM/em_steep.mdp',help='MDP file of steepest decent minimization.')
+@click.option('-min2',default=root+'/MDP/EM/em_l-bfgs.mdp',help='MDP file of L-BFGS minimization.')
+@click.option('-nvt',default=root+'/MDP/NVT/nvt.mdp',help='MDP file of NVT equilibration.')
+@click.option('-npt',default=root+'/MDP/NPT/npt.mdp',help='MDP file of NPT equilibration.')
+@click.option('-prod',default=root+'/MDP/Production_MD/md.mdp',help='MDP file of the Production run.')
+
+@click.option('-ncores',default=8,help='Number of cores per simulation.')
+@click.option('-pin',default='auto',help='Pin to cores.')
+
+
 def inputs(nsim,vdw,coul,mass,bonded,restraint,temp,root,mdp,min1,min2,nvt,npt,prod,ncores,pin):
 	"""Free Energy BAR input generator. \n
 Developed by Neven Golenic | neven.golenic@gmail.com
 \b
 Number of simulations [ N ] default:  20 
-\u03BB coupling interval [N_min,N_max] default: 0,0
+λ coupling interval [N_min,N_max] default: 0,0
 If BAR results from a previous simulation are imported, lambda vectors of different types must not overlap!
 \b
 Recommended inital folder structure:
-	"""+tree
+\n.\n└── analysis\n|		|\n|		└─ bar\n|\n└── MDP\n|   |\n|   ├─ EM\n|   |  ├── em_steep.mdp
+|   |  └── em_l-bfgs.mdp
+|   ├─ NVT
+|   |   └── nvt.mdp 
+|   ├─ NPT
+|   |   └── npt.mdp 
+|   └─ Production_MD
+|       └── md.mdp
+|
+└── SYSTEM
+		|
+		├─ system.top
+		└─ system.gro
+	"""
 
 	check_dirs(root)
 	mdp_types= [min1,min2,nvt,npt,prod]
@@ -88,7 +98,7 @@ def check_dirs(root):
 	Check if given directories exist and create them if they don't.
 	"""
 	dir_array = [root+"/analysis",root+"/analysis/bar",root+"/jobs"]
-	for item in dir_array
+	for item in dir_array:
 		try:
 			os.makedirs(item)
 		except FileExistsError:
@@ -132,7 +142,7 @@ def gen_nsim_mdps(nsim,mdp_types):
 				with open(mdp_path_i,'a') as f2: 
 					for line in mdp_i:
 						if 'init_lambda_state' in line:
-							f2.write('init_lambda_state      = '=str(i)='\n')
+							f2.write('init_lambda_state      = '+str(i)+'\n')
 						else:
 							f2.write(line)
 
@@ -156,9 +166,9 @@ def coupling(nsim,vdw,coul,mass,bonded,restraint,temp):
 	"""
 	coupling_dict = {'vdw_lambdas':vdw,'coul_lambdas':coul,'mass_lambdas':mass,'bonded_lambdas':bonded,'restraint_lambdas':restraint,'temperature_lambdas':temp}	
 	for key in coupling_dict:
-		if coupling_dict[key] != False
+		if coupling_dict[key] != False:
 			lint = coupling_dict[key].split(',') #split coupling interval
-			lstring = 'Coupling {type} from '+color(unil+'({0})',"magenta")+' to '+color(unil+'({1})',"magenta")
+			lstring = 'Coupling {type} from '+color('λ({0})',"magenta")+' to '+color('λ({1})',"magenta")
 			print(lstring.format(lint[0],lint[1],type=key))
 			coupling_dict[key] = key+" = "+" ".join(create_lambdas(nsim,int(lint[0]),int(lint[1])))
 			println(coupling_dict[key])

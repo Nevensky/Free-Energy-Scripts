@@ -11,7 +11,7 @@ root = os.getcwd()
 @click.option('-nsim',default=20,help='Total number of simulations.')
 
 
-@click.option('-root',default=root,help='Total number of simulations.')
+@click.option('-root',default=root,help='Simulation root folder. See help for folder structure.')
 @click.option('-mdp',default=root+'/MDP',help='MDP folder.')
 @click.option('-min1',default=root+'/MDP/EM/em_steep.mdp',help='MDP of steepest decent minimization.')
 @click.option('-min2',default=root+'/MDP/EM/em_l-bfgs.mdp',help='MDP of L-BFGS minimization.')
@@ -19,7 +19,7 @@ root = os.getcwd()
 @click.option('-npt',default=root+'/MDP/NPT/npt.mdp',help='MDP of NPT equilibration.')
 @click.option('-prod',default=root+'/MDP/Production_MD/md.mdp',help='MDP of the production run.')
 
-@click.option('-ncores',default=4,help='Number of cores per simulation.')
+@click.option('-ncores',default=8,help='Number of cores per simulation.')
 @click.option('-pin',default='auto',help='Pin to cores.')
 
 def inputs(nsim,root,mdp,min1,min2,nvt,npt,prod,ncores,pin):
