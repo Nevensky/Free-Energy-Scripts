@@ -124,7 +124,7 @@ def check_dirs(root):
 	"""
 	Check if given directories exist and create them if they don't.
 	"""
-	dir_array = [root+"/analysis",root+"/analysis/bar",root+"/jobs"]
+	dir_array = [root+"/analysis",root+"/analysis/bar",root+"/JOBS",root+"SYSTEM"]
 	for item in dir_array:
 		try:
 			os.makedirs(item)
