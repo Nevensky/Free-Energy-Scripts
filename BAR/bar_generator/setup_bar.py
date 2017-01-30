@@ -5,6 +5,7 @@ from subprocess import call
 
 print("Installing dependencies...")
 call(["conda","install","numpy"])
+call(["conda","install","pip"])
 call(["pip","install","termcolor"])
 call(["conda","install","scipy"])
 call(["conda","install","matplotlib"])
