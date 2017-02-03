@@ -4,11 +4,12 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.optimize import brentq
-from scipy import interpolate
+import matplotlib as mpl
+#from scipy import interpolate
 
 import importbar as bar
 
+mpl.use('Agg')
 plt.style.use('ggplot')
 
 

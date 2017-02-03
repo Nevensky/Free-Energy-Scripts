@@ -6,9 +6,6 @@ import sys, getopt
 import click
 import os
 import numpy as np
-#from scipy.interpolate import interp1d
-#from numpy import interp as interp1d
-import matplotlib.pyplot as plt
 import re 
 from termcolor import colored
 
@@ -283,9 +280,11 @@ def gen_jobs(nsim,root,ncores,pin):
 # Set some environment variables 
 FREE_ENERGY={root}
 echo "Free energy home directory set to $FREE_ENERGY"
-MDP=$FREE_ENERGY/../MDP
+MDP=$FREE_ENERGY/MDP
 echo ".mdp files are stored in $MDP"
 SYSTEM=$FREE_ENERGY/SYSTEM
+# unset OpenMP threads enviroment var to avoid clashes with Gromacs parallelization
+unset OMP_NUM_THREADS
 # A new directory will be created for each value of lambda and
 # at each step in the workflow for maximum organization.
 mkdir lambda_{lambda_i}

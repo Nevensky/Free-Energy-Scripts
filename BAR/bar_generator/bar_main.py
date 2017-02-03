@@ -5,13 +5,14 @@ import numpy as np
 import os
 from termcolor import colored
 from scipy.interpolate import interp1d
+import matplotlib as mpl
+mpl.use('Agg')
+mpl.rcParams['text.usetex'] = True
 import matplotlib.pyplot as plt
-import matplotlib
-
 import ddGintervals as barint
 import importbar as bar
 
-matplotlib.rcParams['text.usetex'] = True
+
 
 # @click.command()
 # @click.option('-nsim',default=20,help='Total number of simulations.')
