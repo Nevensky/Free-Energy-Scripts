@@ -330,7 +330,7 @@ echo "Starting constant pressure equilibration..."
 cd ../
 mkdir NPT
 cd NPT
-gmx grompp -f $MDP/NPT/npt_{lambda_i}.mdp -c ../NVT/nvt_{lambda_i}.gro -p $SYSTEM/system.top -t ../NVT/nvt_{lambda_i}.cpt -o npt{lambda_i}.tpr 
+gmx grompp -f $MDP/NPT/npt_{lambda_i}.mdp -c ../NVT/nvt_{lambda_i}.gro -p $SYSTEM/system.top -t ../NVT/nvt_{lambda_i}.cpt -o npt_{lambda_i}.tpr 
 gmx mdrun -nt {ncpus} -pin {pin} -deffnm npt_{lambda_i}
 echo "Constant pressure equilibration complete."
 sleep 5
