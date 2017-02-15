@@ -108,6 +108,8 @@ Recommended inital folder structure:
 
 	run_at_once = False # Currently not implemented
 	gen_runs(nsim,root,run_at_once=run_at_once)
+	gen_analysis(nsim,root)
+	
 	if run_at_once:
 		gen_bar_results(nsim,root)
 
@@ -362,6 +364,29 @@ def gen_runs(nsim,root,run_at_once=False):
 		f.write(runall)
 	if run_at_once:
 		os.system('nohup '+root+'/exec_runs.sh &')
+	return None
+
+def gen_analysis(nsim,root):
+	""" Replicates gen_bar_resulsts() functionality """
+	barsh = '''
+#!/bin/bash
+mkdir {root}/analysis/bar
+       for i in `seq 0 {nsim}`;
+        do
+cp {root}/lambda_$i/Production_MD/md_$i.xvg {root}/analysis/bar/
+        done    
+cd {root}/analysis/bar
+gmx bar -o -oi -oh -f {k} > bar_results.txt
+
+exit #
+'''
+	k = []
+	for i in range(nsim):
+		k.append("md_"+str(i)+".xvg")
+	k = " ".join(k)
+	barsh = barsh.format(k=k,nsim=nsim-1,root=root)
+	with open(root+'/bar.sh','w') as f:
+		f.write(barsh)
 	return None
 
 def gen_bar_results(nsim,root):
